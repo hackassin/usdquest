@@ -2,6 +2,17 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.1.0] — 2026-07-01
+
+### Added
+- **Sound effects** (synthesized with the Web Audio API — no files, works offline):
+  correct-answer chime, wrong-answer buzz, and a lesson/practice completion fanfare.
+- **Sound on/off toggle** on the Profile page, persisted across sessions.
+
+### Fixed
+- **Single Continue button** — after answering, the feedback sheet's *Continue* now
+  advances directly to the next question in one tap (previously it required two taps).
+
 ## [1.0.0] — 2026-07-01
 
 First public release. 🎉 Live at https://hackassin.github.io/usdquest/
