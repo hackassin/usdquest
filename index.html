@@ -256,6 +256,10 @@
   .empty-card b{color:var(--green-l)}
 
   /* ---------- Leaderboard ---------- */
+  .lbtabs{display:flex;gap:6px;margin:10px 0 4px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:12px;padding:4px}
+  .lbtab{flex:1;padding:10px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted);background:none}
+  .lbtab.active{background:var(--green);color:#06140a}
   .board{display:flex;flex-direction:column;gap:8px}
   .board-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
     border-radius:14px;padding:11px 14px}
@@ -1647,32 +1651,84 @@ el("userChip").addEventListener("click",()=>{ if(confirm("Log out? Your progress
 /* ============================================================
    Leaderboard / Friends screen
    ============================================================ */
-async function renderSocial(){
+/* Global leaderboard: top profiles by XP, plus my rank if I'm off the list */
+async function loadGlobal(){
+  const out={ top:[], myRank:null, me:null, error:null };
+  if(!cloud || !currentUser){ out.error="local"; return out; }
+  try{
+    const {data,error}=await cloud.from("profiles")
+      .select("id,username,display_name,xp,streak,lessons")
+      .order("xp",{ascending:false}).order("updated_at",{ascending:true}).limit(50);
+    if(error){ out.error=error.message; return out; }
+    out.top=data||[];
+    out.me=out.top.find(p=>p.id===currentUser)||null;
+    if(!out.me){
+      const mine=await cloud.from("profiles").select("id,username,display_name,xp,streak").eq("id",currentUser).maybeSingle();
+      out.me=(mine.data)||{ id:currentUser, username:userHandle, display_name:userDisplay, xp:S.xp, streak:S.streak };
+      const {count}=await cloud.from("profiles").select("id",{count:"exact",head:true}).gt("xp", out.me.xp||0);
+      out.myRank=(count||0)+1;
+    }
+  }catch(e){ out.error=e.message; }
+  return out;
+}
+
+function boardRow(p,i){
+  const me=p.id===currentUser;
+  const medal=["🥇","🥈","🥉"][i] || `<span class="rank">${i+1}</span>`;
+  return `<div class="board-row${me?' me':''}">
+    <div class="medal">${medal}</div>
+    <div class="who"><b>${esc(p.display_name||p.username)}${me?' (you)':''}</b><span>@${esc(p.username||'')} · 🔥 ${p.streak||0}</span></div>
+    <div class="bxp">⚡ ${p.xp||0}</div></div>`;
+}
+
+let socialTab="friends";
+async function renderSocial(tab){
+  if(tab) socialTab=tab;
   refreshTop();
   hideAllScreens(); el("social").classList.remove("hidden"); showNav("social");
   const c=el("social");
+  const tabs=`<div class="lbtabs">
+    <button class="lbtab ${socialTab==='friends'?'active':''}" onclick="renderSocial('friends')">👥 Friends</button>
+    <button class="lbtab ${socialTab==='global'?'active':''}" onclick="renderSocial('global')">🌍 Global</button>
+  </div>`;
   if(!cloud){
-    c.innerHTML=`<div class="section-label">🏆 Leaderboard</div>
-      <div class="empty-card">Friends & leaderboards need a cloud account.<br>You're in <b>local mode</b> — set up Supabase to compete with friends.</div>`;
+    c.innerHTML=tabs+`<div class="empty-card">Friends & leaderboards need a cloud account.<br>You're in <b>local mode</b>.</div>`;
     return;
   }
-  c.innerHTML=`<div class="section-label">🏆 Leaderboard</div><div class="empty-card">Loading…</div>`;
+  c.innerHTML=tabs+`<div class="empty-card">Loading…</div>`;
+
+  /* ---- GLOBAL ---- */
+  if(socialTab==="global"){
+    const g=await loadGlobal();
+    if(g.error && g.error!=="local"){
+      c.innerHTML=tabs+`<div class="empty-card">Couldn't load the global board.<br><small>${esc(g.error)}</small></div>`;
+      return;
+    }
+    let gh=tabs+`<div class="section-label">🌍 Global Top 50</div><div class="board">`;
+    if(!g.top.length) gh+=`</div><div class="empty-card">No one's on the board yet — be the first!</div>`;
+    else {
+      g.top.forEach((p,i)=>{ gh+=boardRow(p,i); });
+      gh+=`</div>`;
+      if(g.myRank){
+        gh+=`<div class="section-label">Your rank</div><div class="board">
+          <div class="board-row me"><div class="medal"><span class="rank">${g.myRank}</span></div>
+          <div class="who"><b>${esc(g.me.display_name||g.me.username)} (you)</b><span>@${esc(g.me.username||'')} · 🔥 ${g.me.streak||0}</span></div>
+          <div class="bxp">⚡ ${g.me.xp||0}</div></div></div>`;
+      }
+    }
+    c.innerHTML=gh;
+    return;
+  }
+
+  /* ---- FRIENDS ---- */
   const d=await loadSocial();
   if(d.error && d.error!=="local"){
-    c.innerHTML=`<div class="section-label">🏆 Leaderboard</div>
-      <div class="empty-card">Couldn't load social data.<br><small>${esc(d.error)}</small><br><br>
+    c.innerHTML=tabs+`<div class="empty-card">Couldn't load social data.<br><small>${esc(d.error)}</small><br><br>
       If this is the first time, the <b>friends tables</b> may not exist yet — run <code>schema-v2.sql</code> in Supabase (see CLOUD-SETUP).</div>`;
     return;
   }
-  let html=`<div class="section-label">🏆 Leaderboard</div><div class="board">`;
-  d.leaderboard.forEach((p,i)=>{
-    const me=p.id===currentUser;
-    const medal=["🥇","🥈","🥉"][i] || `<span class="rank">${i+1}</span>`;
-    html+=`<div class="board-row${me?' me':''}">
-      <div class="medal">${medal}</div>
-      <div class="who"><b>${esc(p.display_name||p.username)}${me?' (you)':''}</b><span>@${esc(p.username||'')} · 🔥 ${p.streak||0}</span></div>
-      <div class="bxp">⚡ ${p.xp||0}</div></div>`;
-  });
+  let html=tabs+`<div class="section-label">🏆 Friends leaderboard</div><div class="board">`;
+  d.leaderboard.forEach((p,i)=>{ html+=boardRow(p,i); });
   html+=`</div>`;
 
   if(d.incoming.length){
