@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>USDQuest — Learn NVIDIA OpenUSD</title>
+<style>
+  :root{
+    --green:#76b900;          /* NVIDIA green */
+    --green-d:#5e9400;
+    --green-l:#8fd400;
+    --ink:#0b1418;
+    --panel:#0f1c22;
+    --panel-2:#14272f;
+    --line:#1f3a44;
+    --text:#e8f3ec;
+    --muted:#8aa1a8;
+    --gold:#ffc800;
+    --red:#ff5a5f;
+    --blue:#1cb0f6;
+    --radius:18px;
+    --shadow:0 6px 0 rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%, #163b1a 0%, var(--ink) 55%) fixed;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;outline:none}
+  .app{max-width:680px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;gap:14px;
+    padding:14px 18px;
+    background:rgba(11,20,24,.82);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:.3px}
+  .logo .cube{font-size:22px}
+  .logo b{color:var(--green-l)}
+  .spacer{flex:1}
+  .stat{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px;
+        padding:6px 11px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line)}
+  .stat.streak{color:var(--gold)}
+  .stat.xp{color:var(--green-l)}
+  .stat.hearts{color:var(--red)}
+  .stat .ico{font-size:16px;line-height:1}
+
+  /* ---------- Path ---------- */
+  .scroll{flex:1;overflow-y:auto;padding:8px 18px 120px}
+  .unit-head{
+    margin:26px 0 6px;border-radius:var(--radius);
+    padding:16px 20px;color:#06140a;font-weight:800;
+    box-shadow:var(--shadow);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .unit-head h2{margin:0;font-size:17px}
+  .unit-head p{margin:3px 0 0;font-size:13px;font-weight:600;opacity:.8}
+  .unit-head .badge{font-size:12px;background:rgba(0,0,0,.18);padding:5px 10px;border-radius:999px}
+
+  .nodes{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 0 4px}
+  .node-wrap{position:relative;display:flex;flex-direction:column;align-items:center}
+  .node{
+    width:74px;height:66px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:30px;position:relative;transition:transform .08s ease;
+    border:none;color:#fff;
+  }
+  .node:active{transform:translateY(2px)}
+  .node .ring{position:absolute;inset:-7px;border-radius:50%;border:4px solid transparent}
+  .node.done{background:var(--green);box-shadow:0 6px 0 var(--green-d)}
+  .node.current{background:var(--green);box-shadow:0 6px 0 var(--green-d);animation:bob 1.6s ease-in-out infinite}
+  .node.current .ring{border-color:rgba(143,212,0,.55)}
+  .node.locked{background:#23343b;box-shadow:0 6px 0 #16242a;color:#42555d;cursor:not-allowed}
+  .node.boss{background:linear-gradient(160deg,#ffc800,#ff9d00);box-shadow:0 6px 0 #b86b00;color:#3a2400}
+  .node.boss.locked{background:#23343b;box-shadow:0 6px 0 #16242a;color:#42555d}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .node-label{font-size:12px;color:var(--muted);margin-top:6px;max-width:130px;text-align:center;font-weight:600}
+  .start-bubble{
+    position:absolute;top:-34px;background:#fff;color:var(--green-d);
+    font-weight:800;font-size:12px;padding:5px 12px;border-radius:10px;white-space:nowrap;
+    box-shadow:0 3px 0 rgba(0,0,0,.2)
+  }
+  .start-bubble:after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);
+    border:7px solid transparent;border-top-color:#fff;border-bottom:0}
+  .check{position:absolute;right:-2px;top:-2px;background:var(--gold);color:#3a2400;
+    width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:900;border:3px solid var(--ink)}
+
+  /* zig-zag offsets */
+  .o0{transform:translateX(0)} .o1{transform:translateX(60px)} .o2{transform:translateX(95px)}
+  .o3{transform:translateX(60px)} .o4{transform:translateX(0)} .o5{transform:translateX(-60px)}
+  .o6{transform:translateX(-95px)} .o7{transform:translateX(-60px)}
+
+  /* ---------- Lesson screen ---------- */
+  .lesson{display:none;flex-direction:column;flex:1;padding:16px 18px 24px;min-height:100%}
+  .lesson.active{display:flex}
+  .l-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .quit{font-size:26px;color:var(--muted);background:none;line-height:1}
+  .pbar{flex:1;height:16px;background:var(--panel-2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .pbar i{display:block;height:100%;background:var(--green);border-radius:999px;transition:width .3s ease;width:0}
+  .l-hearts{display:flex;align-items:center;gap:5px;color:var(--red);font-weight:800}
+
+  .q-kind{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green-l);font-weight:800;margin-bottom:8px}
+  .q-text{font-size:23px;font-weight:800;line-height:1.3;margin:0 0 10px}
+  .q-sub{color:var(--muted);font-size:14px;margin:0 0 20px;line-height:1.5}
+  code,.code{font-family:'Cascadia Code',Consolas,monospace;background:#0a161b;border:1px solid var(--line);
+    padding:2px 7px;border-radius:6px;color:var(--green-l);font-size:.92em}
+  pre.code{display:block;padding:14px 16px;white-space:pre;overflow-x:auto;color:var(--text);margin:0 0 20px}
+  pre.code .tok{color:var(--green-l)} pre.code .str{color:var(--gold)} pre.code .com{color:var(--muted)}
+
+  .choices{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+  .choice{
+    text-align:left;background:var(--panel);border:2px solid var(--line);
+    border-bottom-width:4px;border-radius:14px;padding:16px 18px;color:var(--text);
+    font-size:16px;font-weight:600;transition:.05s;display:flex;gap:12px;align-items:center;
+  }
+  .choice .key{flex:none;width:26px;height:26px;border:2px solid var(--line);border-radius:7px;
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+  .choice:hover{background:var(--panel-2)}
+  .choice.sel{border-color:var(--blue);background:rgba(28,176,246,.12)}
+  .choice.sel .key{border-color:var(--blue);color:var(--blue)}
+  .choice.correct{border-color:var(--green);background:rgba(118,185,0,.16)}
+  .choice.correct .key{border-color:var(--green);color:var(--green-l)}
+  .choice.wrong{border-color:var(--red);background:rgba(255,90,95,.14)}
+  .choice.wrong .key{border-color:var(--red);color:var(--red)}
+  .choice.disabled{pointer-events:none;opacity:.55}
+
+  .typed{width:100%;background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;
+    border-radius:14px;padding:16px 18px;color:var(--text);font-size:17px;font-weight:600;margin-bottom:14px}
+  .typed:focus{border-color:var(--blue)}
+
+  /* ---------- Footer / feedback ---------- */
+  .foot{margin-top:auto;padding-top:14px}
+  .btn{
+    width:100%;padding:16px;border-radius:14px;font-weight:800;font-size:16px;letter-spacing:.4px;
+    text-transform:uppercase;color:#06140a;background:var(--green);box-shadow:0 5px 0 var(--green-d);
+    transition:.05s;
+  }
+  .btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--green-d)}
+  .btn.ghost{background:var(--panel-2);color:var(--muted);box-shadow:0 5px 0 #0c171c;border:1px solid var(--line)}
+  .btn:disabled{background:#2a3a41;color:#5c6e75;box-shadow:0 5px 0 #16242a;cursor:not-allowed}
+  .btn.blue{background:var(--blue);box-shadow:0 5px 0 #1187c4;color:#04212f}
+
+  .feedback{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;transform:translateY(110%);
+    transition:transform .25s cubic-bezier(.2,.8,.2,1);
+  }
+  .feedback.show{transform:translateY(0)}
+  .feedback .inner{max-width:680px;margin:0 auto;padding:18px 18px 26px}
+  .feedback.ok{background:rgba(28,53,18,.97)}
+  .feedback.no{background:rgba(58,18,20,.97)}
+  .fb-title{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;margin-bottom:4px}
+  .feedback.ok .fb-title{color:var(--green-l)}
+  .feedback.no .fb-title{color:var(--red)}
+  .fb-explain{font-size:14px;line-height:1.55;color:#d4e6da;margin:0 0 14px}
+  .fb-explain b{color:#fff}
+
+  /* ---------- Results ---------- */
+  .results{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;
+    text-align:center;padding:40px 24px}
+  .results.active{display:flex}
+  .results .big{font-size:64px;margin-bottom:6px;animation:pop .4s ease}
+  @keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+  .results h1{font-size:26px;margin:0 0 4px}
+  .results p{color:var(--muted);margin:0 0 26px}
+  .rstats{display:flex;gap:14px;margin-bottom:30px;flex-wrap:wrap;justify-content:center}
+  .rstat{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 22px;min-width:104px}
+  .rstat .v{font-size:24px;font-weight:900}
+  .rstat .l{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+  .rstat.xp .v{color:var(--green-l)} .rstat.acc .v{color:var(--blue)} .rstat.time .v{color:var(--gold)}
+
+  /* ---------- misc ---------- */
+  .hidden{display:none!important}
+  .toast{position:fixed;top:74px;left:50%;transform:translateX(-50%) translateY(-20px);
+    background:var(--gold);color:#3a2400;font-weight:800;padding:10px 18px;border-radius:999px;
+    opacity:0;transition:.3s;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.4);font-size:14px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .footer-note{text-align:center;color:var(--muted);font-size:12px;padding:18px;line-height:1.5}
+  .footer-note a{color:var(--green-l)}
+  .reset{background:none;color:var(--muted);text-decoration:underline;font-size:12px}
+  .empty-hearts{filter:grayscale(1);opacity:.3}
+
+  /* ---------- User chip ---------- */
+  .stat.user{color:var(--text);cursor:pointer;max-width:150px}
+  .stat.user:hover{background:var(--line)}
+  .stat.user #uname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px}
+
+  /* ---------- Login screen ---------- */
+  .login{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;
+    padding:40px 24px;min-height:100%}
+  .login.active{display:flex}
+  .login .brand{font-size:46px;margin-bottom:8px}
+  .login h1{margin:0 0 4px;font-size:26px}
+  .login h1 b{color:var(--green-l)}
+  .login .tag{color:var(--muted);margin:0 0 26px;text-align:center;font-size:14px;line-height:1.5}
+  .login .card{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow)}
+  .login label{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+    font-weight:800;margin:0 0 6px}
+  .login input{width:100%;background:var(--ink);border:2px solid var(--line);border-radius:12px;
+    padding:13px 14px;color:var(--text);font-size:16px;font-weight:600;margin-bottom:16px}
+  .login input:focus{border-color:var(--blue)}
+  .login .row{display:flex;gap:10px}
+  .login .row .btn{flex:1;padding:14px}
+  .auth-msg{min-height:18px;color:var(--red);font-size:13px;font-weight:700;margin:2px 0 12px;text-align:center}
+  .auth-msg.ok{color:var(--green-l)}
+  .login .note{color:var(--muted);font-size:11px;line-height:1.5;text-align:center;margin:16px 0 0;max-width:360px}
+
+  /* ---------- Practice section ---------- */
+  .practice-wrap{display:flex;gap:12px;margin:6px 0 4px;flex-wrap:wrap}
+  .pcard{flex:1;min-width:220px;border-radius:var(--radius);padding:16px 18px;border:2px solid var(--line);
+    background:var(--panel);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+  .pcard.mistakes{border-color:#5a2d33;background:linear-gradient(160deg,#26171a,#14272f)}
+  .pcard.quick{border-color:#2d4a5a;background:linear-gradient(160deg,#16242a,#14272f)}
+  .pcard .ptitle{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px}
+  .pcard .pdesc{color:var(--muted);font-size:13px;line-height:1.4;flex:1}
+  .pcard .pbtn{padding:11px;border-radius:11px;font-weight:800;font-size:14px;text-transform:uppercase;
+    letter-spacing:.4px;color:#06140a}
+  .pcard.mistakes .pbtn{background:var(--red);box-shadow:0 4px 0 #b53b3f;color:#fff}
+  .pcard.quick .pbtn{background:var(--blue);box-shadow:0 4px 0 #1187c4;color:#04212f}
+  .pcard .pbtn:active{transform:translateY(2px)}
+  .pcard .pbtn:disabled{background:#2a3a41;color:#5c6e75;box-shadow:0 4px 0 #16242a;cursor:not-allowed}
+  .pcard .pcount{font-size:13px;font-weight:800}
+  .pcard.mistakes .pcount{color:#ff8b8f}
+  .section-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
+    font-weight:800;margin:18px 2px 2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOP BAR -->
+  <div class="topbar" id="topbar">
+    <div class="logo"><span class="cube">🧊</span><span>USD<b>Quest</b></span></div>
+    <div class="spacer"></div>
+    <div class="stat streak" title="Day streak"><span class="ico">🔥</span><span id="streak">0</span></div>
+    <div class="stat xp" title="Total XP"><span class="ico">⚡</span><span id="xp">0</span></div>
+    <div class="stat hearts" title="Hearts"><span class="ico">❤️</span><span id="hearts">5</span></div>
+    <button class="stat user" id="userChip" title="Log out"><span class="ico">👤</span><span id="uname"></span></button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login" id="login">
+    <div class="brand">🧊</div>
+    <h1>USD<b>Quest</b></h1>
+    <p class="tag">Master NVIDIA OpenUSD — one lesson at a time.<br>Log in or create a local account to save your progress.</p>
+    <div class="card">
+      <label for="authUser">Username</label>
+      <input id="authUser" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="e.g. usd_learner"/>
+      <label for="authPass">Password</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="••••••"/>
+      <div class="auth-msg" id="authMsg"></div>
+      <div class="row">
+        <button class="btn" id="loginBtn">Log in</button>
+        <button class="btn ghost" id="signupBtn">Sign up</button>
+      </div>
+    </div>
+    <p class="note">🔒 Accounts are stored only in this browser (no server). Passwords are obfuscated, not securely encrypted — please don't reuse a real password.</p>
+  </div>
+
+  <!-- HOME / PATH -->
+  <div class="scroll" id="home"></div>
+
+  <!-- LESSON -->
+  <div class="lesson" id="lesson">
+    <div class="l-top">
+      <button class="quit" id="quit" title="Quit lesson">✕</button>
+      <div class="pbar"><i id="pbar"></i></div>
+      <div class="l-hearts"><span>❤️</span><span id="lhearts">5</span></div>
+    </div>
+    <div id="qbody"></div>
+    <div class="foot"><button class="btn" id="check" disabled>Check</button></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results"></div>
+
+  <div class="footer-note" id="fnote"></div>
+</div>
+
+<input type="file" id="importFile" accept="application/json,.json" class="hidden"/>
+
+<!-- FEEDBACK SHEET -->
+<div class="feedback" id="feedback">
+  <div class="inner">
+    <div class="fb-title" id="fbTitle"></div>
+    <p class="fb-explain" id="fbExplain"></p>
+    <button class="btn" id="continue">Continue</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Supabase JS SDK (for optional cloud sync). Falls back to local accounts if unreachable. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   USDQuest — curriculum data
+   Each unit -> lessons -> questions.
+   Question types: "mc" (multiple choice), "tf" (true/false),
+                   "type" (free text, normalized match)
+   ============================================================ */
+const CURRICULUM = [
+{
+  title:"Unit 1 · OpenUSD Foundations",
+  subtitle:"What USD is and why it exists",
+  color:"#76b900",
+  lessons:[
+    { name:"What is OpenUSD?", icon:"📦", questions:[
+      {type:"mc", kind:"Concept",
+        q:"What does USD stand for in OpenUSD?",
+        choices:["Universal Scene Description","Unified Surface Definition","Universal Shading Data","Uniform Stage Descriptor"],
+        answer:0,
+        explain:"<b>Universal Scene Description</b> is an open framework, created by Pixar, for describing, composing, and collaborating on 3D scenes."},
+      {type:"mc", kind:"Concept",
+        q:"Which company originally created USD before open-sourcing it?",
+        choices:["Pixar","NVIDIA","Autodesk","Epic Games"],
+        answer:0,
+        explain:"<b>Pixar</b> developed USD for its film pipeline and open-sourced it in 2016. NVIDIA builds Omniverse on top of OpenUSD."},
+      {type:"tf", kind:"True or False",
+        q:"USD is mainly a single file format, not a system for combining many files.",
+        answer:false,
+        explain:"False. USD's defining strength is <b>composition</b> — assembling many layers/files into one scenegraph. It's a system, not just a format."},
+      {type:"mc", kind:"Ecosystem",
+        q:"NVIDIA's real-time 3D collaboration platform built on OpenUSD is called:",
+        choices:["Omniverse","Isaac","Maxine","Clara"],
+        answer:0,
+        explain:"<b>NVIDIA Omniverse</b> uses OpenUSD as its native scene-description and interchange layer."},
+      {type:"tf", kind:"Ecosystem",
+        q:"OpenUSD's development is coordinated by the Alliance for OpenUSD (AOUSD).",
+        answer:true,
+        explain:"True. The <b>AOUSD</b> (founded 2023 under the Linux Foundation) standardizes and promotes OpenUSD across the industry."},
+      {type:"mc", kind:"Concept",
+        q:"What is USD's single biggest advantage for large team pipelines?",
+        choices:["Non-destructive composition & collaboration","Smaller textures","Built-in physics","Faster GPUs"],
+        answer:0,
+        explain:"USD lets many people layer changes <b>non-destructively</b> and assemble them into one scene — ideal for collaborative pipelines."},
+    ]},
+    { name:"USD File Formats", icon:"🗂️", questions:[
+      {type:"mc", kind:"File formats",
+        q:"Which extension is the human-readable, text (ASCII) form of USD?",
+        choices:[".usda",".usdc",".usdz",".usdb"],
+        answer:0,
+        explain:"<b>.usda</b> is ASCII/text — editable in any editor. <code>.usdc</code> is the binary 'Crate' form, and <code>.usdz</code> is a zipped package."},
+      {type:"mc", kind:"File formats",
+        q:"Which format is a compressed, uneditable archive used mainly for delivery (e.g. AR on iOS)?",
+        choices:[".usdz",".usda",".usdc",".abc"],
+        answer:0,
+        explain:"<b>.usdz</b> is an uncompressed zip package bundling a USD file plus textures — ideal for shipping a single self-contained asset."},
+      {type:"mc", kind:"File formats",
+        q:"The generic <code>.usd</code> extension can hold either:",
+        choices:["ASCII or binary content","Only ASCII","Only binary","Only references to other files"],
+        answer:0,
+        explain:"<b>.usd</b> is format-agnostic: the file may be either text or Crate binary, and USD detects which at read time."},
+      {type:"tf", kind:"True or False",
+        q:"<code>.usdc</code> (Crate) files are faster to load for large scenes than <code>.usda</code>.",
+        answer:true,
+        explain:"True. The binary <b>Crate</b> format supports lazy, memory-mapped reads, making it far more efficient for big datasets."},
+      {type:"mc", kind:"File formats",
+        q:"You need to hand-edit a USD file in a text editor. Which format do you reach for?",
+        choices:[".usda",".usdc",".usdz",".usd (binary)"],
+        answer:0,
+        explain:"<b>.usda</b> is ASCII text — the only form you can comfortably read and edit by hand."},
+    ]},
+  ]
+},
+{
+  title:"Unit 2 · Stages & Layers",
+  subtitle:"The runtime scenegraph and its files",
+  color:"#1cb0f6",
+  lessons:[
+    { name:"The Stage", icon:"🎬", questions:[
+      {type:"mc", kind:"Core idea",
+        q:"In USD, the composed scenegraph you actually traverse and render is called the:",
+        choices:["Stage","Layer","Prim","Crate"],
+        answer:0,
+        explain:"A <b>Stage</b> is the composed view of one or more layers — the live scenegraph your code opens and edits."},
+      {type:"mc", kind:"Layers",
+        q:"A single USD file on disk corresponds most directly to a:",
+        choices:["Layer","Stage","Prim","Schema"],
+        answer:0,
+        explain:"A <b>Layer</b> is the container of scene description that maps to a file (or anonymous in-memory layer). A Stage composes layers together."},
+      {type:"mc", kind:"Editing",
+        q:"When you edit a stage, your changes are written to the current:",
+        choices:["Edit target (a layer)","Stage cache","Render buffer","Prim index"],
+        answer:0,
+        explain:"The <b>edit target</b> determines which layer receives authored changes. By default it's the stage's root layer."},
+      {type:"tf", kind:"True or False",
+        q:"A stage can be composed from many layers at once.",
+        answer:true,
+        explain:"True. Composition is the whole point — a stage assembles a <b>layer stack</b> plus referenced/payloaded layers into one scenegraph."},
+      {type:"type", kind:"Type the answer",
+        q:"In the Python API you open a stage with <code>Usd.Stage.____('scene.usd')</code>. Fill the blank.",
+        sub:"One word (the method name).",
+        answer:["open"],
+        explain:"<code>Usd.Stage.Open(path)</code> opens an existing stage; <code>CreateNew</code> makes a new one."},
+    ]},
+    { name:"Layers & Opinions", icon:"🧅", questions:[
+      {type:"mc", kind:"Opinions",
+        q:"When two layers both set the same attribute, the value that wins is decided by:",
+        choices:["Layer strength order","Alphabetical order","File modification time","Random selection"],
+        answer:0,
+        explain:"USD resolves a single value from competing <b>opinions</b> using strength ordering. The strongest layer's opinion wins."},
+      {type:"mc", kind:"Sublayers",
+        q:"Within a layer stack, a sublayer listed <em>first</em> is:",
+        choices:["Stronger (wins conflicts)","Weaker","Ignored","Merged 50/50"],
+        answer:0,
+        explain:"Earlier sublayers are <b>stronger</b>. This lets a shot layer override an asset layer that sits below it."},
+      {type:"tf", kind:"True or False",
+        q:"Removing a strong opinion can reveal a weaker opinion underneath it.",
+        answer:true,
+        explain:"True. Because USD keeps all opinions, deleting the winning one lets the next-strongest value 'show through' — non-destructive editing."},
+      {type:"type", kind:"Type the answer",
+        q:"USD computing one final value from many competing opinions is called ____ resolution.",
+        sub:"One word.",
+        answer:["value"],
+        explain:"<b>Value resolution</b> is how USD computes the winning value from all opinions using composition strength."},
+    ]},
+  ]
+},
+{
+  title:"Unit 3 · Prims & Properties",
+  subtitle:"The building blocks of a scene",
+  color:"#ffc800",
+  lessons:[
+    { name:"Prims & Paths", icon:"🧩", questions:[
+      {type:"mc", kind:"Definitions",
+        q:"The fundamental named object in a USD scenegraph (a node like a mesh, light, or group) is a:",
+        choices:["Prim","Layer","Stage","Token"],
+        answer:0,
+        explain:"A <b>Prim</b> (primitive) is a named container in the namespace hierarchy. It can hold properties and child prims."},
+      {type:"type", kind:"Type the answer",
+        q:"A prim located at <code>/World/Robot/Arm</code> — what character separates the names in this path?",
+        sub:"Type a single character.",
+        answer:["/","slash","forward slash"],
+        explain:"USD paths are <b>/</b>-delimited, like a filesystem. <code>/World/Robot/Arm</code> means Arm is a child of Robot, child of World."},
+      {type:"mc", kind:"Properties",
+        q:"Prims hold two kinds of properties. They are attributes and:",
+        choices:["Relationships","Layers","Stages","Variants"],
+        answer:0,
+        explain:"<b>Attributes</b> hold typed values (e.g. points, color). <b>Relationships</b> are typed pointers to other prims (e.g. binding a material)."},
+      {type:"mc", kind:"Properties",
+        q:"Which is an example of an attribute (not a relationship)?",
+        choices:["A mesh's <code>points</code> array","A <code>material:binding</code> to a shader prim","A skeleton's <code>skel:skeleton</code> target","A collection's <code>includes</code>"],
+        answer:0,
+        explain:"<code>points</code> stores actual typed data → attribute. The others are <b>relationships</b> that target other prims by path."},
+      {type:"mc", kind:"Stage setup",
+        q:"Setting a stage's <code>defaultPrim</code> matters because:",
+        choices:["Referencing the asset pulls in that prim by default","It sets the render camera","It compresses the file","It defines the frame rate"],
+        answer:0,
+        explain:"The <b>defaultPrim</b> is the root prim used when another stage references this layer without naming a target prim."},
+      {type:"tf", kind:"True or False",
+        q:"A USD attribute can store different values at different times (time samples).",
+        answer:true,
+        explain:"True. Attributes support <b>timeSamples</b>, enabling animation; a single non-animated value is the 'default'."},
+    ]},
+    { name:"Metadata & Kind", icon:"🏷️", questions:[
+      {type:"mc", kind:"Metadata",
+        q:"<code>kind</code> metadata (component, group, assembly…) is mainly used to:",
+        choices:["Classify prims for model hierarchy & traversal","Set the render color","Compress the file","Define units"],
+        answer:0,
+        explain:"<b>kind</b> tags a prim's role in the model hierarchy (e.g. <code>component</code>, <code>assembly</code>), helping tools traverse and group assets."},
+      {type:"mc", kind:"Activation",
+        q:"Setting a prim's <code>active</code> metadata to <code>false</code> does what?",
+        choices:["Prunes it and its descendants from composition","Hides it from render only","Deletes the file","Locks it from editing"],
+        answer:0,
+        explain:"Deactivating a prim <b>prunes</b> it (and its children) from the composed stage — a non-destructive way to remove a subtree."},
+      {type:"tf", kind:"True or False",
+        q:"<code>visibility</code> and <code>active</code> are the same thing in USD.",
+        answer:false,
+        explain:"False. <b>visibility</b> affects rendering but the prim still composes; <b>active=false</b> removes the prim from the scenegraph entirely."},
+      {type:"mc", kind:"Model hierarchy",
+        q:"Which <code>kind</code> marks a leaf-level, self-contained publishable asset?",
+        choices:["component","assembly","group","subcomponent"],
+        answer:0,
+        explain:"<b>component</b> is the leaf of the model hierarchy — a referenceable published asset. <code>assembly</code>/<code>group</code> aggregate components."},
+    ]},
+  ]
+},
+{
+  title:"Unit 4 · Composition Arcs",
+  subtitle:"LIVRPS — how USD assembles scenes",
+  color:"#ff7eb6",
+  lessons:[
+    { name:"References & Payloads", icon:"🔗", questions:[
+      {type:"mc", kind:"Composition",
+        q:"A <b>reference</b> composition arc is used to:",
+        choices:["Bring another asset/layer's prims into the current scene","Compress textures","Render a frame","Rename a prim"],
+        answer:0,
+        explain:"A <b>reference</b> pulls the contents of another layer (or prim) onto a prim — the core mechanism for reusing assets."},
+      {type:"mc", kind:"Composition",
+        q:"How does a <b>payload</b> differ from a reference?",
+        choices:["Payloads can be loaded/unloaded on demand (deferred)","Payloads are always stronger","Payloads can't target external files","Payloads ignore variants"],
+        answer:0,
+        explain:"A <b>payload</b> is a special reference that's <b>lazy-loadable</b> — you can unload heavy assets to keep huge scenes manageable."},
+      {type:"tf", kind:"True or False",
+        q:"Payloads are mainly a scalability feature for very large scenes.",
+        answer:true,
+        explain:"True. Deferring/unloading payloads lets you open a massive world and stream in only the assets you need."},
+      {type:"type", kind:"Type the answer",
+        q:"A reference whose contents can be loaded or unloaded on demand is called a ____.",
+        sub:"One word.",
+        answer:["payload"],
+        explain:"A <b>payload</b> is a deferred-loadable reference — key to streaming massive scenes."},
+    ]},
+    { name:"Variants", icon:"🎚️", questions:[
+      {type:"mc", kind:"Variants",
+        q:"A <b>variant set</b> lets a single prim:",
+        choices:["Switch between alternative configurations","Reference itself","Skip composition","Store binary data"],
+        answer:0,
+        explain:"A <b>variant set</b> (e.g. <code>color</code> = red/blue/green) packages swappable configurations behind one selectable switch."},
+      {type:"mc", kind:"Variants",
+        q:"Choosing which variant is active is done via the:",
+        choices:["Variant selection","Edit target","Render delegate","Layer offset"],
+        answer:0,
+        explain:"The <b>variant selection</b> picks the active option in a variant set. Changing it recomposes that subtree."},
+      {type:"tf", kind:"True or False",
+        q:"In LIVRPS, variant opinions are stronger than references.",
+        answer:true,
+        explain:"True. Order is L→I→<b>V</b>→<b>R</b>→P→S, so Variants outrank References."},
+      {type:"mc", kind:"Variants",
+        q:"A <code>modelingVariant</code> with options <code>high</code>/<code>low</code> most likely swaps:",
+        choices:["Different geometry resolutions (LOD-like)","Render delegates","File formats","User accounts"],
+        answer:0,
+        explain:"Variant sets commonly package alternatives like detail levels, looks, or states behind one selectable switch."},
+    ]},
+    { name:"BOSS · LIVRPS Order", icon:"👑", boss:true, questions:[
+      {type:"mc", kind:"Strength ordering",
+        q:"LIVRPS describes USD's composition strength order. What does the <b>L</b> stand for?",
+        choices:["Local (the layer stack)","Layer offset","Lighting","Lookup"],
+        answer:0,
+        explain:"<b>L = Local</b> — the root layer stack and its sublayers. It is the <em>strongest</em> arc in LIVRPS."},
+      {type:"mc", kind:"Strength ordering",
+        q:"Order LIVRPS from STRONGEST to weakest. Which is correct?",
+        choices:[
+          "Local → Inherits → Variants → References → Payloads → Specializes",
+          "Specializes → Payloads → References → Variants → Inherits → Local",
+          "References → Local → Payloads → Inherits → Variants → Specializes",
+          "Local → Variants → Inherits → Payloads → References → Specializes"],
+        answer:0,
+        explain:"<b>LIVRPS</b> = Local, Inherits, Variants, References, Payloads, Specializes — strongest to weakest. Memorize it; it's the heart of value resolution."},
+      {type:"mc", kind:"Strength ordering",
+        q:"<b>Specializes</b> sits at which end of LIVRPS?",
+        choices:["Weakest (always overridable)","Strongest","Middle","It's not part of LIVRPS"],
+        answer:0,
+        explain:"<b>Specializes</b> is the <em>weakest</em> arc, so a 'base look' authored via specializes can be refined by everything above it."},
+      {type:"tf", kind:"True or False",
+        q:"<b>Inherits</b> is stronger than <b>References</b> in LIVRPS.",
+        answer:true,
+        explain:"True. Order is L→I→V→R→P→S, so Inherits (I) outranks References (R). A class inherited prim can override referenced opinions."},
+      {type:"type", kind:"Type the answer",
+        q:"Fill the blank: In LIVRPS the <b>V</b> stands for ____.",
+        sub:"One word.",
+        answer:["variants","variant","variant sets"],
+        explain:"<b>V = Variants.</b> Variant opinions are stronger than references but weaker than inherits."},
+    ]},
+  ]
+},
+{
+  title:"Unit 5 · Schemas",
+  subtitle:"Giving prims meaning and structure",
+  color:"#a06bff",
+  lessons:[
+    { name:"IsA vs API Schemas", icon:"📐", questions:[
+      {type:"mc", kind:"Schemas",
+        q:"An <b>IsA (typed) schema</b> defines:",
+        choices:["What a prim *is* (its type), e.g. Mesh, Xform, Sphere","Only metadata units","Render settings only","File compression"],
+        answer:0,
+        explain:"A <b>typed/IsA schema</b> sets the prim's type — e.g. <code>UsdGeomMesh</code>. A prim has exactly one type."},
+      {type:"mc", kind:"Schemas",
+        q:"An <b>API schema</b> typically:",
+        choices:["Adds extra properties/behavior to a prim of any type","Replaces the prim type","Stores the binary crate","Picks the render delegate"],
+        answer:0,
+        explain:"<b>API schemas</b> are mix-ins: they layer extra attributes/behavior (e.g. <code>UsdPhysicsRigidBodyAPI</code>) onto an existing prim."},
+      {type:"tf", kind:"True or False",
+        q:"A prim can have only one IsA type but multiple applied API schemas.",
+        answer:true,
+        explain:"True. One concrete type per prim, but you can apply many API schemas to enrich it (physics, shading, skel, etc.)."},
+      {type:"mc", kind:"Schemas",
+        q:"<code>UsdPhysicsRigidBodyAPI</code> is an example of:",
+        choices:["An applied API schema","A typed (IsA) schema","A file format","A render delegate"],
+        answer:0,
+        explain:"It's an <b>applied API schema</b> — a mix-in that adds physics behavior to a prim of some other type."},
+    ]},
+    { name:"UsdGeom Basics", icon:"🔺", questions:[
+      {type:"mc", kind:"UsdGeom",
+        q:"<code>Xform</code> prims primarily provide:",
+        choices:["Transformations (translate/rotate/scale)","Mesh topology","Material networks","Cameras"],
+        answer:0,
+        explain:"An <b>Xform</b> is a transformable prim — it carries the <code>xformOp</code> stack that positions its subtree in space."},
+      {type:"mc", kind:"UsdGeom",
+        q:"Which schema represents polygonal geometry with points and face indices?",
+        choices:["Mesh","Scope","Camera","DomeLight"],
+        answer:0,
+        explain:"<b>Mesh</b> (UsdGeomMesh) stores <code>points</code>, <code>faceVertexCounts</code>, and <code>faceVertexIndices</code> for polygonal surfaces."},
+      {type:"mc", kind:"UsdGeom",
+        q:"A <code>Scope</code> prim is best described as:",
+        choices:["A simple grouping prim with no transform","A light","A renderable mesh","A material"],
+        answer:0,
+        explain:"<b>Scope</b> is a pure organizational grouping prim — like a folder — that does not introduce a transformation."},
+      {type:"mc", kind:"UsdGeom",
+        q:"Which schema defines a camera in USD?",
+        choices:["UsdGeomCamera","UsdGeomMesh","UsdShadeMaterial","UsdLuxDomeLight"],
+        answer:0,
+        explain:"<b>UsdGeomCamera</b> describes the camera (focal length, clipping range, etc.) within UsdGeom."},
+      {type:"tf", kind:"True or False",
+        q:"A <code>Scope</code> prim introduces a transformation to its children.",
+        answer:false,
+        explain:"False. <b>Scope</b> is a pure grouping prim with no transform. Use an <code>Xform</code> when you need a transform."},
+    ]},
+  ]
+},
+{
+  title:"Unit 6 · Rendering & Workflows",
+  subtitle:"Hydra, materials, and pipelines",
+  color:"#ff9d3c",
+  lessons:[
+    { name:"Hydra & Imaging", icon:"🖥️", questions:[
+      {type:"mc", kind:"Hydra",
+        q:"<b>Hydra</b> is USD's:",
+        choices:["Rendering architecture that connects scene data to renderers","File format","Variant system","Physics engine"],
+        answer:0,
+        explain:"<b>Hydra</b> is a modern rendering framework: it streams scene data through to pluggable <b>render delegates</b>."},
+      {type:"mc", kind:"Hydra",
+        q:"A pluggable backend that Hydra drives (e.g. Storm, RenderMan, an RTX path tracer) is called a:",
+        choices:["Render delegate","Scene delegate","Edit target","Variant set"],
+        answer:0,
+        explain:"A <b>render delegate</b> implements drawing for a specific renderer. Swapping delegates lets one scene render in many engines."},
+      {type:"tf", kind:"True or False",
+        q:"Hydra lets the same USD scene be rendered by different renderers without changing the scene.",
+        answer:true,
+        explain:"True. That decoupling — scene data on one side, render delegates on the other — is exactly what Hydra provides."},
+      {type:"tf", kind:"Hydra",
+        q:"<b>Storm</b> is Hydra's built-in real-time rasterizing render delegate.",
+        answer:true,
+        explain:"True. <b>Storm</b> is the OpenGL/Vulkan/Metal rasterizer shipped with USD for fast viewport drawing."},
+    ]},
+    { name:"Materials (UsdShade)", icon:"🎨", questions:[
+      {type:"mc", kind:"Shading",
+        q:"In USD, materials and shader networks are described using:",
+        choices:["UsdShade (Material & Shader prims)","UsdGeom only","Crate metadata","Layer offsets"],
+        answer:0,
+        explain:"<b>UsdShade</b> defines <code>Material</code> and <code>Shader</code> prims connected into networks, bound to geometry via relationships."},
+      {type:"mc", kind:"Shading",
+        q:"The open standard often used with USD for portable, node-based materials is:",
+        choices:["MaterialX","JPEG","FBX","Alembic"],
+        answer:0,
+        explain:"<b>MaterialX</b> describes look/material networks in a renderer-agnostic way and integrates tightly with UsdShade."},
+      {type:"mc", kind:"Workflows",
+        q:"Binding a material to geometry is done through a:",
+        choices:["Relationship (material:binding)","New stage","Payload","Crate file"],
+        answer:0,
+        explain:"Geometry points to its material via the <code>material:binding</code> <b>relationship</b> — a typed pointer to the Material prim."},
+      {type:"mc", kind:"Shading",
+        q:"<code>UsdPreviewSurface</code> is:",
+        choices:["A standard, portable PBR shader for consistent previews","An image format","A composition arc","A camera type"],
+        answer:0,
+        explain:"<b>UsdPreviewSurface</b> is a renderer-agnostic PBR shading model so assets preview consistently across tools."},
+    ]},
+  ]
+},
+];
+
+/* ============================================================
+   Question index — give every question a stable id so mistakes
+   can be stored and reattempted later.
+   ============================================================ */
+const ALL_Q={};   // id "ui-li-qi" -> {ui,li,qi,q,unit,lesson}
+CURRICULUM.forEach((u,ui)=>u.lessons.forEach((l,li)=>l.questions.forEach((q,qi)=>{
+  q._id=ui+"-"+li+"-"+qi;
+  ALL_Q[q._id]={ui,li,qi,q,unit:u,lesson:l};
+})));
+
+/* ============================================================
+   Accounts + per-user state (all local, no server)
+   ============================================================ */
+const ACCT_KEY="usdquest_accounts";
+const SESSION_KEY="usdquest_session";
+const MAX_HEARTS = 5;
+const HEART_REFILL_MS = 1000*60*30; // 30 min per heart
+
+/* ============================================================
+   CLOUD SYNC (Supabase) — paste your project's values below.
+   Find them in Supabase: Project Settings → API.
+   Until both are filled in, the app runs with LOCAL accounts.
+   ============================================================ */
+const SUPABASE_URL      = "https://egudbcwltaootmzsjyny.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVndWRiY3dsdGFvb3RtenNqeW55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MTQ5NDYsImV4cCI6MjA5ODM5MDk0Nn0.wdPDeATKwz2puFumVkECw5Bb6CrCpCiuW26_L4ArbTw";
+
+const cloud = ( !SUPABASE_URL.includes("YOUR-PROJECT")
+             && !SUPABASE_ANON_KEY.includes("YOUR-PUBLIC")
+             && window.supabase )
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+let userDisplay = "";   // name shown in the top bar (works for both modes)
+
+const defaultState = () => ({
+  xp:0, hearts:MAX_HEARTS, lastHeartTs:Date.now(),
+  streak:0, lastPlayDay:null,
+  completed:{},        // "u-l" -> {best:0..1}
+  mistakes:[],         // array of question ids still to review
+});
+
+let accounts = loadAccounts();
+let currentUser = localStorage.getItem(SESSION_KEY) || null;
+let S = defaultState();
+
+function loadAccounts(){ try{ return JSON.parse(localStorage.getItem(ACCT_KEY))||{}; }catch(e){ return {}; } }
+function saveAccounts(){ localStorage.setItem(ACCT_KEY, JSON.stringify(accounts)); }
+function save(){
+  if(cloud){
+    if(currentUser){ localStorage.setItem("usdquest_cache_"+currentUser, JSON.stringify(S)); schedulePush(); }
+    return;
+  }
+  if(currentUser && accounts[currentUser]){ accounts[currentUser].state=S; saveAccounts(); }
+}
+
+/* lightweight obfuscation — NOT real security (local toy app) */
+function hashPass(s){ let h=5381; for(let i=0;i<s.length;i++){ h=((h<<5)+h)^s.charCodeAt(i); } return (h>>>0).toString(16); }
+
+function loginOk(key){
+  currentUser=key; localStorage.setItem(SESSION_KEY,key);
+  S={...defaultState(), ...(accounts[key].state||{})};
+  if(!Array.isArray(S.mistakes)) S.mistakes=[];
+  userDisplay=accounts[key].display;
+  return null; // null == success
+}
+function signup(user,pass){
+  user=(user||"").trim();
+  if(user.length<2) return "Username must be at least 2 characters.";
+  if((pass||"").length<3) return "Password must be at least 3 characters.";
+  const key=user.toLowerCase();
+  if(accounts[key]) return "That username already exists — try logging in.";
+  accounts[key]={display:user, pass:hashPass(pass), state:defaultState()};
+  saveAccounts();
+  return loginOk(key);
+}
+function login(user,pass){
+  const key=(user||"").trim().toLowerCase();
+  if(!key) return "Enter your username.";
+  const a=accounts[key];
+  if(!a) return "No account with that username.";
+  if(a.pass!==hashPass(pass||"")) return "Incorrect password.";
+  return loginOk(key);
+}
+async function logout(){
+  if(cloud){ try{ await flushPush(); await cloud.auth.signOut(); }catch(e){} }
+  else { save(); localStorage.removeItem(SESSION_KEY); }
+  currentUser=null; userDisplay="";
+  showLogin();
+}
+
+/* ---- Cloud (Supabase) auth + sync ---- */
+let pushTimer=null;
+function schedulePush(){ clearTimeout(pushTimer); pushTimer=setTimeout(pushCloud, 900); }
+async function pushCloud(){
+  if(!cloud || !currentUser) return;
+  try{ await cloud.from("progress").upsert({ user_id:currentUser, data:S, updated_at:new Date().toISOString() }); }
+  catch(e){ console.warn("Cloud save failed:", e); }
+}
+async function flushPush(){ clearTimeout(pushTimer); await pushCloud(); }
+
+async function onCloudSignedIn(user){
+  currentUser=user.id;
+  userDisplay=(user.email||"learner").split("@")[0];
+  let loaded=null;
+  try{
+    const {data}=await cloud.from("progress").select("data").eq("user_id",user.id).maybeSingle();
+    if(data && data.data) loaded=data.data;
+  }catch(e){ console.warn("Cloud load failed:", e); }
+  if(loaded){ S={...defaultState(), ...loaded}; }
+  else {
+    try{ const c=JSON.parse(localStorage.getItem("usdquest_cache_"+user.id)); if(c) loaded=c; }catch(e){}
+    S={...defaultState(), ...(loaded||{})};
+    await pushCloud(); // create the user's row
+  }
+  if(!Array.isArray(S.mistakes)) S.mistakes=[];
+  localStorage.setItem("usdquest_cache_"+user.id, JSON.stringify(S));
+}
+async function cloudSignUp(email,pass){
+  const {data,error}=await cloud.auth.signUp({ email:(email||"").trim(), password:pass });
+  if(error) return error.message;
+  if(!data.session) return "Account created — check your email to confirm, then log in.";
+  await onCloudSignedIn(data.user); return null;
+}
+async function cloudLogin(email,pass){
+  const {data,error}=await cloud.auth.signInWithPassword({ email:(email||"").trim(), password:pass });
+  if(error) return error.message;
+  await onCloudSignedIn(data.user); return null;
+}
+
+/* mistakes bank */
+function addMistake(id){ if(id && ALL_Q[id] && !S.mistakes.includes(id)) S.mistakes.push(id); }
+function removeMistake(id){ const i=S.mistakes.indexOf(id); if(i>=0) S.mistakes.splice(i,1); }
+function validMistakes(){ return S.mistakes.filter(id=>ALL_Q[id]); }
+
+/* heart regeneration */
+function regenHearts(){
+  if(S.hearts>=MAX_HEARTS){ S.lastHeartTs=Date.now(); return; }
+  const elapsed = Date.now()-S.lastHeartTs;
+  const gained = Math.floor(elapsed/HEART_REFILL_MS);
+  if(gained>0){
+    S.hearts=Math.min(MAX_HEARTS,S.hearts+gained);
+    S.lastHeartTs = S.hearts>=MAX_HEARTS ? Date.now() : S.lastHeartTs+gained*HEART_REFILL_MS;
+    save();
+  }
+}
+/* streak tracking */
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function bumpStreak(){
+  const t=todayStr();
+  if(S.lastPlayDay===t) return;
+  const y=new Date(); y.setDate(y.getDate()-1);
+  const yStr=y.getFullYear()+"-"+(y.getMonth()+1)+"-"+y.getDate();
+  S.streak = (S.lastPlayDay===yStr)? S.streak+1 : 1;
+  S.lastPlayDay=t; save();
+}
+
+/* ============================================================
+   DOM refs
+   ============================================================ */
+const el = id => document.getElementById(id);
+const home=el("home"), lessonEl=el("lesson"), resultsEl=el("results"),
+      qbody=el("qbody"), checkBtn=el("check"), pbar=el("pbar"),
+      feedback=el("feedback"), fbTitle=el("fbTitle"), fbExplain=el("fbExplain"),
+      continueBtn=el("continue"), toast=el("toast");
+
+function refreshTop(){
+  regenHearts();
+  el("xp").textContent=S.xp;
+  el("streak").textContent=S.streak;
+  el("hearts").textContent=S.hearts;
+  el("lhearts").textContent=S.hearts;
+  el("uname").textContent = userDisplay || "";
+}
+function showToast(msg){
+  toast.textContent=msg; toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),1700);
+}
+
+/* ============================================================
+   Lesson unlocking logic
+   A lesson is unlocked if it's the first overall, or the
+   previous lesson (in flattened order) is completed.
+   ============================================================ */
+function flatLessons(){
+  const out=[];
+  CURRICULUM.forEach((u,ui)=>u.lessons.forEach((l,li)=>out.push({ui,li,key:ui+"-"+li,l,u})));
+  return out;
+}
+function isCompleted(key){ return !!S.completed[key]; }
+function isUnlocked(idx, flat){
+  if(idx===0) return true;
+  return isCompleted(flat[idx-1].key);
+}
+
+/* ============================================================
+   Render the home / path screen
+   ============================================================ */
+function renderHome(){
+  refreshTop();
+  const flat=flatLessons();
+  let globalIdx=0;
+  let html="";
+  // find current (first unlocked & not completed)
+  let currentKey=null;
+  for(let i=0;i<flat.length;i++){ if(isUnlocked(i,flat)&&!isCompleted(flat[i].key)){currentKey=flat[i].key;break;} }
+
+  // ---- Practice / Exercises ----
+  const mCount=validMistakes().length;
+  html+=`<div class="section-label">Exercises</div><div class="practice-wrap">
+    <div class="pcard mistakes">
+      <div class="ptitle">🩹 Review Mistakes</div>
+      <div class="pdesc">Re-attempt the questions you got wrong. Answer right to clear them.</div>
+      <div class="pcount">${mCount? mCount+" to review" : "Nothing to review yet 🎉"}</div>
+      <button class="pbtn" ${mCount?'onclick="startPractice(\'mistakes\')"':'disabled'}>Practice</button>
+    </div>
+    <div class="pcard quick">
+      <div class="ptitle">⚡ Quick Practice</div>
+      <div class="pdesc">A quick mixed quiz drawn from every lesson you've unlocked.</div>
+      <div class="pcount">8 random questions · no hearts lost</div>
+      <button class="pbtn" onclick="startPractice('quick')">Start</button>
+    </div>
+  </div>`;
+
+  CURRICULUM.forEach((u,ui)=>{
+    const totalDone=u.lessons.filter((l,li)=>isCompleted(ui+"-"+li)).length;
+    html+=`<div class="unit-head" style="background:linear-gradient(135deg, ${u.color}, ${shade(u.color,-18)})">
+        <div><h2>${u.title}</h2><p>${u.subtitle}</p></div>
+        <div class="badge">${totalDone}/${u.lessons.length} ✓</div>
+      </div><div class="nodes">`;
+    u.lessons.forEach((l,li)=>{
+      const key=ui+"-"+li;
+      const idx=flat.findIndex(f=>f.key===key);
+      const unlocked=isUnlocked(idx,flat);
+      const done=isCompleted(key);
+      const current=key===currentKey;
+      let cls= l.boss?"boss":"";
+      if(done) cls+=" done";
+      else if(current) cls+=" current";
+      else if(!unlocked) cls+=" locked";
+      else cls+=" done"; // unlocked-but-not-current (rare) still clickable, show as available
+      if(!unlocked) cls=(l.boss?"boss ":"")+"locked";
+      const off="o"+(globalIdx%8);
+      globalIdx++;
+      html+=`<div class="node-wrap ${off}">
+        ${current?'<div class="start-bubble">START</div>':''}
+        <button class="node ${cls}" ${unlocked?`onclick="startLesson(${ui},${li})"`:''} title="${l.name}">
+          ${done?'<span class="check">✓</span>':''}
+          <span>${unlocked? l.icon : '🔒'}</span>
+          <span class="ring"></span>
+        </button>
+        <div class="node-label">${l.name}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  home.innerHTML=html;
+  home.classList.remove("hidden");
+  lessonEl.classList.remove("active");
+  resultsEl.classList.remove("active");
+  el("fnote").innerHTML='Progress saves automatically in your browser.<br>'
+    +'<button class="reset" onclick="exportProgress()">⬇ Export backup</button> &nbsp;·&nbsp; '
+    +'<button class="reset" onclick="document.getElementById(\'importFile\').click()">⬆ Import backup</button> &nbsp;·&nbsp; '
+    +'<button class="reset" onclick="hardReset()">Reset progress</button>';
+}
+
+/* small color shader */
+function shade(hex,p){
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)+p, g=((n>>8)&255)+p, b=(n&255)+p;
+  r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+  return "#"+((r<<16)|(g<<8)|b).toString(16).padStart(6,"0");
+}
+
+/* ============================================================
+   Lesson runtime
+   ============================================================ */
+let L=null; // current lesson session
+function startLesson(ui,li){
+  regenHearts();
+  if(S.hearts<=0){ showToast("Out of hearts! They refill over time ❤️"); renderHome(); return; }
+  const unit=CURRICULUM[ui], lesson=unit.lessons[li];
+  // shallow copy + shuffle questions a little for replay value
+  const qs=lesson.questions.map(q=>({...q}));
+  L={ui,li,key:ui+"-"+li,lesson,unit,qs,i:0,correct:0,wrong:0,started:Date.now(),selected:null,answered:false};
+  home.classList.add("hidden");
+  resultsEl.classList.remove("active");
+  lessonEl.classList.add("active");
+  renderQuestion();
+}
+
+function startPractice(mode){
+  regenHearts();
+  let ids=[];
+  if(mode==="mistakes"){
+    ids=shuffle(validMistakes()).slice(0,15);
+    if(!ids.length){ showToast("No mistakes to review 🎉"); renderHome(); return; }
+  } else { // quick: random from unlocked lessons
+    const flat=flatLessons(), pool=[];
+    flat.forEach((f,idx)=>{ if(isUnlocked(idx,flat)) f.l.questions.forEach((q,qi)=>pool.push(f.ui+"-"+f.li+"-"+qi)); });
+    ids=shuffle(pool).slice(0,8);
+    if(!ids.length){ showToast("Complete a lesson first!"); renderHome(); return; }
+  }
+  const qs=ids.map(id=>({...ALL_Q[id].q}));   // copy keeps _id
+  L={practice:true, practiceMode:mode, qs, i:0, correct:0, wrong:0, started:Date.now(), selected:null, answered:false,
+     title: mode==="mistakes" ? "Review Mistakes" : "Quick Practice"};
+  home.classList.add("hidden");
+  resultsEl.classList.remove("active");
+  lessonEl.classList.add("active");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  refreshTop();
+  L.answered=false; L.selected=null;
+  const q=L.qs[L.i];
+  pbar.style.width=(L.i/L.qs.length*100)+"%";
+  checkBtn.disabled=true; checkBtn.textContent="Check"; checkBtn.className="btn";
+
+  let body=`<div class="q-kind">${q.kind||"Question"}</div><h2 class="q-text">${q.q}</h2>`;
+  if(q.sub) body+=`<p class="q-sub">${q.sub}</p>`;
+  if(q.code) body+=`<pre class="code">${q.code}</pre>`;
+
+  if(q.type==="mc"){
+    // build shuffled choice order, remembering correct index
+    const order=shuffle([...q.choices.keys()]);
+    q._order=order;
+    body+=`<div class="choices">`;
+    order.forEach((ci,pos)=>{
+      const letter=String.fromCharCode(65+pos);
+      body+=`<button class="choice" data-pos="${pos}" onclick="selectChoice(${pos})">
+                <span class="key">${letter}</span><span>${q.choices[ci]}</span></button>`;
+    });
+    body+=`</div>`;
+  } else if(q.type==="tf"){
+    q._order=[0,1]; // 0=True,1=False
+    body+=`<div class="choices">
+      <button class="choice" data-pos="0" onclick="selectChoice(0)"><span class="key">T</span><span>True</span></button>
+      <button class="choice" data-pos="1" onclick="selectChoice(1)"><span class="key">F</span><span>False</span></button>
+    </div>`;
+  } else if(q.type==="type"){
+    body+=`<input class="typed" id="typedIn" placeholder="Type your answer…" autocomplete="off" autocapitalize="off" spellcheck="false"/>`;
+  }
+  qbody.innerHTML=body;
+
+  if(q.type==="type"){
+    const inp=el("typedIn");
+    inp.addEventListener("input",()=>{checkBtn.disabled=inp.value.trim()==="";});
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!checkBtn.disabled)onCheck();});
+    setTimeout(()=>inp.focus(),60);
+  }
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function selectChoice(pos){
+  if(L.answered) return;
+  L.selected=pos;
+  document.querySelectorAll(".choice").forEach(c=>c.classList.toggle("sel",+c.dataset.pos===pos));
+  checkBtn.disabled=false;
+}
+
+function onCheck(){
+  const q=L.qs[L.i];
+  if(!L.answered){ evaluate(q); }
+  else { advance(); }
+}
+
+function evaluate(q){
+  L.answered=true;
+  let correct=false, userText=null;
+
+  if(q.type==="mc"){
+    const chosenOriginal=q._order[L.selected];
+    correct = chosenOriginal===q.answer;
+    document.querySelectorAll(".choice").forEach(c=>{
+      const pos=+c.dataset.pos, orig=q._order[pos];
+      c.classList.add("disabled");
+      if(orig===q.answer) c.classList.add("correct");
+      else if(pos===L.selected) c.classList.add("wrong");
+    });
+  } else if(q.type==="tf"){
+    const chosenBool = L.selected===0; // 0=True
+    correct = chosenBool===q.answer;
+    document.querySelectorAll(".choice").forEach(c=>{
+      const pos=+c.dataset.pos; c.classList.add("disabled");
+      const isCorrectBtn = (pos===0)===q.answer;
+      if(isCorrectBtn) c.classList.add("correct");
+      else if(pos===L.selected) c.classList.add("wrong");
+    });
+  } else if(q.type==="type"){
+    const inp=el("typedIn"); userText=inp.value.trim().toLowerCase();
+    inp.disabled=true;
+    correct = q.answer.map(a=>a.toLowerCase()).includes(userText);
+    inp.style.borderColor = correct? "var(--green)":"var(--red)";
+  }
+
+  if(correct){ L.correct++; removeMistake(q._id); }
+  else{
+    L.wrong++; addMistake(q._id);
+    if(!L.practice){
+      S.hearts=Math.max(0,S.hearts-1);
+      if(S.hearts===MAX_HEARTS-1) S.lastHeartTs=Date.now();
+    }
+  }
+  save();
+  refreshTop();
+  showFeedback(correct,q);
+}
+
+function showFeedback(correct,q){
+  feedback.className="feedback "+(correct?"ok":"no")+" show";
+  fbTitle.innerHTML = correct? "✅ Correct!" : ((!L.practice && S.hearts<=0)?"💔 Out of hearts":"❌ Not quite");
+  fbExplain.innerHTML=q.explain||"";
+  checkBtn.className="btn "+(correct?"":"blue");
+  checkBtn.textContent="Continue";
+  checkBtn.disabled=false;
+}
+
+function advance(){
+  feedback.classList.remove("show");
+  if(!L.practice && S.hearts<=0){ // failed lesson
+    setTimeout(()=>endLesson(false),250);
+    return;
+  }
+  L.i++;
+  if(L.i>=L.qs.length){ setTimeout(()=>endLesson(true),250); return; }
+  setTimeout(renderQuestion,180);
+}
+
+function endLesson(passed){
+  feedback.classList.remove("show");
+  lessonEl.classList.remove("active");
+  checkBtn.className="btn"; checkBtn.textContent="Check";
+  const total=L.qs.length;
+  const acc=Math.round(L.correct/total*100);
+  const secs=Math.round((Date.now()-L.started)/1000);
+  let gainedXp=0;
+
+  if(L.practice){
+    bumpStreak();
+    gainedXp=5+L.correct*2;
+    S.xp+=gainedXp; save(); refreshTop();
+    resultsEl.classList.add("active");
+    const remaining=validMistakes().length;
+    const third = L.practiceMode==="mistakes"
+      ? `<div class="rstat time"><div class="v">${remaining}</div><div class="l">Mistakes left</div></div>`
+      : `<div class="rstat time"><div class="v">${secs}s</div><div class="l">Time</div></div>`;
+    resultsEl.innerHTML=`
+      <div class="big">${L.wrong===0?"🌟":"💪"}</div>
+      <h1>Practice complete!</h1>
+      <p>${L.title}</p>
+      <div class="rstats">
+        <div class="rstat xp"><div class="v">+${gainedXp}</div><div class="l">XP</div></div>
+        <div class="rstat acc"><div class="v">${L.correct}/${total}</div><div class="l">Correct</div></div>
+        ${third}
+      </div>
+      <div style="width:100%;max-width:340px"><button class="btn" onclick="renderHome()">Continue</button></div>`;
+    return;
+  }
+
+  if(passed){
+    bumpStreak();
+    const base=10, bonus=L.wrong===0?5:0;
+    gainedXp=base+bonus+L.correct*2;
+    S.xp+=gainedXp;
+    const prevBest=(S.completed[L.key]&&S.completed[L.key].best)||0;
+    S.completed[L.key]={best:Math.max(prevBest,acc)};
+    save();
+  }
+  refreshTop();
+
+  resultsEl.classList.add("active");
+  if(passed){
+    const perfect=L.wrong===0;
+    resultsEl.innerHTML=`
+      <div class="big">${perfect?"🏆":"🎉"}</div>
+      <h1>${perfect?"Flawless!":"Lesson complete!"}</h1>
+      <p>${L.unit.title} · ${L.lesson.name}</p>
+      <div class="rstats">
+        <div class="rstat xp"><div class="v">+${gainedXp}</div><div class="l">Total XP</div></div>
+        <div class="rstat acc"><div class="v">${acc}%</div><div class="l">Accuracy</div></div>
+        <div class="rstat time"><div class="v">${secs}s</div><div class="l">Time</div></div>
+      </div>
+      <div style="width:100%;max-width:340px">
+        <button class="btn" onclick="renderHome()">Continue</button>
+      </div>`;
+  } else {
+    resultsEl.innerHTML=`
+      <div class="big">💔</div>
+      <h1>Out of hearts</h1>
+      <p>You ran out on <b>${L.lesson.name}</b>. Hearts refill over time — or try again now.</p>
+      <div class="rstats">
+        <div class="rstat acc"><div class="v">${L.correct}/${total}</div><div class="l">Correct</div></div>
+        <div class="rstat time"><div class="v">${S.hearts}</div><div class="l">Hearts left</div></div>
+      </div>
+      <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px">
+        <button class="btn" onclick="renderHome()">Back to path</button>
+      </div>`;
+  }
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+checkBtn.addEventListener("click",onCheck);
+continueBtn.addEventListener("click",()=>{feedback.classList.remove("show");});
+el("quit").addEventListener("click",()=>{
+  if(confirm("Quit this lesson? Progress in it will be lost.")){ feedback.classList.remove("show"); renderHome(); }
+});
+
+// keyboard: number keys pick choices, Enter checks
+document.addEventListener("keydown",e=>{
+  if(!lessonEl.classList.contains("active")) return;
+  if(L&&!L.answered){
+    const q=L.qs[L.i];
+    if(q.type==="mc"||q.type==="tf"){
+      const n=parseInt(e.key);
+      const count=q.type==="tf"?2:q.choices.length;
+      if(n>=1&&n<=count){ selectChoice(n-1); }
+      if((e.key==="t"||e.key==="T")&&q.type==="tf") selectChoice(0);
+      if((e.key==="f"||e.key==="F")&&q.type==="tf") selectChoice(1);
+    }
+  }
+  if(e.key==="Enter"&&!checkBtn.disabled){ e.preventDefault(); onCheck(); }
+});
+
+function hardReset(){
+  if(confirm("Erase all XP, streak and progress?")){ S=defaultState(); save(); renderHome(); }
+}
+
+/* ---- Export / Import progress backup ---- */
+function exportProgress(){
+  const payload={ app:"usdquest", version:1, exportedAt:new Date().toISOString(), state:S };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const d=new Date(), pad=n=>String(n).padStart(2,"0");
+  a.href=url;
+  a.download=`usdquest-progress-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showToast("Backup downloaded ⬇");
+}
+function importProgress(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      // accept either the wrapped payload or a raw state object
+      const incoming = (data && data.app==="usdquest" && data.state) ? data.state : data;
+      if(!incoming || typeof incoming!=="object" || typeof incoming.xp==="undefined" || typeof incoming.completed==="undefined")
+        throw new Error("Not a USDQuest backup file");
+      if(!confirm("Replace your current progress with this backup?")) return;
+      S={...defaultState(), ...incoming};
+      // guard the numbers
+      S.hearts=Math.max(0,Math.min(MAX_HEARTS, +S.hearts||0));
+      S.xp=Math.max(0,+S.xp||0);
+      S.streak=Math.max(0,+S.streak||0);
+      if(typeof S.completed!=="object"||!S.completed) S.completed={};
+      save(); renderHome(); showToast("Progress restored ✅");
+    }catch(e){ alert("Couldn't import that file.\n\n"+e.message); }
+  };
+  reader.onerror=()=>alert("Couldn't read that file.");
+  reader.readAsText(file);
+}
+el("importFile").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(f) importProgress(f);
+  e.target.value=""; // allow re-importing the same file later
+});
+
+/* ============================================================
+   Login screen control + auth wiring
+   ============================================================ */
+function showLogin(){
+  el("login").classList.add("active");
+  el("topbar").style.display="none";
+  home.classList.add("hidden");
+  lessonEl.classList.remove("active");
+  resultsEl.classList.remove("active");
+  el("fnote").innerHTML="";
+  el("authUser").value=""; el("authPass").value="";
+  const m=el("authMsg"); m.textContent=""; m.className="auth-msg";
+  setTimeout(()=>el("authUser").focus(),60);
+}
+function hideLogin(){
+  el("login").classList.remove("active");
+  el("topbar").style.display="";
+}
+async function doAuth(mode){
+  const u=el("authUser").value, p=el("authPass").value;
+  const m=el("authMsg"); m.className="auth-msg";
+  let err;
+  if(cloud){
+    if(!/.+@.+\..+/.test((u||"").trim())){ m.textContent="Enter a valid email address."; return; }
+    el("loginBtn").disabled=true; el("signupBtn").disabled=true; m.textContent="Working…"; m.className="auth-msg ok";
+    err = mode==="login" ? await cloudLogin(u,p) : await cloudSignUp(u,p);
+    el("loginBtn").disabled=false; el("signupBtn").disabled=false;
+  } else {
+    err = mode==="login" ? login(u,p) : signup(u,p);
+  }
+  if(err){ m.textContent=err; m.className="auth-msg"+(/confirm/i.test(err)?" ok":""); return; }
+  hideLogin(); renderHome();
+  showToast((mode==="login"?"Welcome back, ":"Welcome, ")+userDisplay+"! 👋");
+}
+el("loginBtn").addEventListener("click",()=>doAuth("login"));
+el("signupBtn").addEventListener("click",()=>doAuth("signup"));
+el("authPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doAuth("login"); });
+el("authUser").addEventListener("keydown",e=>{ if(e.key==="Enter") el("authPass").focus(); });
+el("userChip").addEventListener("click",()=>{ if(confirm("Log out? Your progress is saved to this account.")) logout(); });
+
+window.startLesson=startLesson; window.startPractice=startPractice; window.selectChoice=selectChoice;
+window.renderHome=renderHome; window.hardReset=hardReset;
+window.exportProgress=exportProgress;
+
+/* boot — resume session if logged in, else show login */
+async function boot(){
+  if(cloud){
+    // adapt the login UI for email-based cloud auth
+    const lab=document.querySelector('label[for="authUser"]'); if(lab) lab.textContent="Email";
+    el("authUser").type="email"; el("authUser").placeholder="you@example.com";
+    el("authUser").setAttribute("autocomplete","email");
+    const tag=document.querySelector(".login .tag");
+    if(tag) tag.innerHTML="Master NVIDIA OpenUSD — on any device.<br>Your progress syncs to the cloud with your account.";
+    const note=document.querySelector(".login .note");
+    if(note) note.innerHTML="☁️ Progress is saved to your account in the cloud — log in with the same email on your phone to pick up where you left off.";
+    try{
+      const {data}=await cloud.auth.getSession();
+      if(data && data.session){ await onCloudSignedIn(data.session.user); hideLogin(); renderHome(); return; }
+    }catch(e){ console.warn("Session check failed:", e); }
+    showLogin();
+  } else {
+    if(currentUser && accounts[currentUser]){ loginOk(currentUser); hideLogin(); renderHome(); }
+    else { currentUser=null; showLogin(); }
+  }
+}
+boot();
+</script>
+</body>
+</html>

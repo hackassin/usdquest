@@ -1,0 +1,12 @@
+# --- Local deploy credentials — NEVER commit these ---
+deploy.local.json
+*.secret
+.env
+
+# Local tooling / editor
+.claude/
+
+# OS cruft
+Thumbs.db
+.DS_Store
+desktop.ini
