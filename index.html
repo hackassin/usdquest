@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>USDQuest — Learn NVIDIA OpenUSD</title>
+
+<!-- App icon + installable PWA -->
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#76b900" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="USDQuest" />
 <style>
   :root{
     --green:#76b900;          /* NVIDIA green */
@@ -664,6 +674,186 @@ const CURRICULUM = [
     ]},
   ]
 },
+{
+  title:"Unit 7 · Lighting & Cameras",
+  subtitle:"UsdLux lights and UsdGeom cameras",
+  color:"#ffb300",
+  lessons:[
+    { name:"Lights (UsdLux)", icon:"💡", questions:[
+      {type:"mc", kind:"UsdLux",
+        q:"A <code>DomeLight</code> is mainly used for:",
+        choices:["Image-based environment lighting (IBL)","A single point light","Casting shadows only","Defining a camera"],
+        answer:0,
+        explain:"<b>DomeLight</b> wraps the scene in an environment/HDRI image for realistic image-based lighting."},
+      {type:"mc", kind:"UsdLux",
+        q:"Which light simulates the sun — parallel rays from infinitely far away?",
+        choices:["DistantLight","SphereLight","RectLight","DiskLight"],
+        answer:0,
+        explain:"<b>DistantLight</b> emits parallel rays (directional), perfect for sunlight."},
+      {type:"mc", kind:"UsdLux",
+        q:"A <code>RectLight</code> emits light from:",
+        choices:["A rectangular area","A single point","A cone","An imported mesh"],
+        answer:0,
+        explain:"<b>RectLight</b> is an area light shaped like a rectangle — soft, realistic shadows like a softbox."},
+      {type:"tf", kind:"True or False",
+        q:"UsdLux lights are prims with schemas, so they can be referenced and composed like any other prim.",
+        answer:true,
+        explain:"True. Lights are first-class prims — they compose, reference, and vary just like geometry."},
+    ]},
+    { name:"Cameras & Framing", icon:"🎥", questions:[
+      {type:"mc", kind:"Cameras",
+        q:"On a <code>UsdGeomCamera</code>, <code>focalLength</code> mainly controls:",
+        choices:["Field of view (zoom)","Shadow softness","Frame rate","Material color"],
+        answer:0,
+        explain:"A longer <b>focalLength</b> narrows the field of view (zoom in); shorter widens it."},
+      {type:"mc", kind:"Cameras",
+        q:"Which attribute defines the near/far distances a camera can see?",
+        choices:["clippingRange","focusDistance","fStop","exposure"],
+        answer:0,
+        explain:"<b>clippingRange</b> sets the near and far clip planes; geometry outside it isn't drawn."},
+      {type:"mc", kind:"Cameras",
+        q:"A USD camera's <code>projection</code> can be:",
+        choices:["perspective or orthographic","additive or subtractive","ASCII or binary","local or world"],
+        answer:0,
+        explain:"USD cameras support <b>perspective</b> and <b>orthographic</b> projections."},
+    ]},
+  ]
+},
+{
+  title:"Unit 8 · Physics & Simulation",
+  subtitle:"UsdPhysics and rigid-body dynamics",
+  color:"#00c2a8",
+  lessons:[
+    { name:"Rigid Bodies", icon:"🧱", questions:[
+      {type:"mc", kind:"UsdPhysics",
+        q:"Applying <code>UsdPhysicsRigidBodyAPI</code> to a prim makes it:",
+        choices:["A dynamic body driven by the simulation","Invisible","A camera","A material"],
+        answer:0,
+        explain:"<b>RigidBodyAPI</b> turns a prim into a simulated dynamic body affected by gravity and forces."},
+      {type:"mc", kind:"UsdPhysics",
+        q:"To let an object collide with others, you apply:",
+        choices:["UsdPhysicsCollisionAPI","UsdShadeMaterial","UsdGeomXform","UsdSkelBindingAPI"],
+        answer:0,
+        explain:"<b>CollisionAPI</b> gives a prim collision geometry so the solver can detect contacts."},
+      {type:"mc", kind:"UsdPhysics",
+        q:"A <code>PhysicsScene</code> prim defines:",
+        choices:["Global simulation settings like gravity","The render camera","A material network","File compression"],
+        answer:0,
+        explain:"<b>PhysicsScene</b> holds scene-wide physics settings (e.g. gravity direction and magnitude)."},
+      {type:"tf", kind:"True or False",
+        q:"USD physics is expressed largely through applied API schemas layered onto existing prims.",
+        answer:true,
+        explain:"True. Physics behavior is added via API schemas (RigidBody, Collision, Material…) rather than new prim types."},
+    ]},
+    { name:"Joints & Materials", icon:"⚙️", questions:[
+      {type:"mc", kind:"UsdPhysics",
+        q:"A constrained connection between two bodies (fixed, revolute, prismatic…) is a:",
+        choices:["Joint","Variant","Payload","Scope"],
+        answer:0,
+        explain:"<b>Joints</b> constrain relative motion between bodies — hinges, sliders, fixed links, etc."},
+      {type:"mc", kind:"UsdPhysics",
+        q:"Friction and bounciness (restitution) are defined by a:",
+        choices:["Physics material (UsdPhysicsMaterialAPI)","DomeLight","Crate file","Variant set"],
+        answer:0,
+        explain:"A <b>physics material</b> sets surface properties like static/dynamic friction and restitution."},
+      {type:"mc", kind:"Ecosystem",
+        q:"NVIDIA's GPU-accelerated physics engine used in Omniverse is:",
+        choices:["PhysX","Hydra","Nucleus","MDL"],
+        answer:0,
+        explain:"<b>PhysX</b> is NVIDIA's physics engine; Omniverse simulates USD physics through it."},
+    ]},
+  ]
+},
+{
+  title:"Unit 9 · Animation & Skinning",
+  subtitle:"Time samples and UsdSkel",
+  color:"#b06bff",
+  lessons:[
+    { name:"Time & Animation", icon:"⏱️", questions:[
+      {type:"mc", kind:"Animation",
+        q:"Animated attribute values over time are stored as:",
+        choices:["timeSamples","variants","payloads","relationships"],
+        answer:0,
+        explain:"<b>timeSamples</b> store per-time-code values; USD interpolates between them for animation."},
+      {type:"mc", kind:"Animation",
+        q:"A stage's <code>timeCodesPerSecond</code> defines:",
+        choices:["How time codes map to seconds (playback rate)","The polygon count","The render resolution","The number of layers"],
+        answer:0,
+        explain:"<b>timeCodesPerSecond</b> sets the playback rate — e.g. 24 means 24 time codes per second."},
+      {type:"mc", kind:"Animation",
+        q:"<code>startTimeCode</code> and <code>endTimeCode</code> define:",
+        choices:["The stage's playback range","The default prim","The up axis","The file format"],
+        answer:0,
+        explain:"They mark the <b>playable range</b> of the animation on the stage."},
+      {type:"tf", kind:"True or False",
+        q:"An attribute with only a default value (no time samples) is constant over time.",
+        answer:true,
+        explain:"True. With no time samples, the <b>default</b> value holds for all time codes."},
+    ]},
+    { name:"Skeletons (UsdSkel)", icon:"🦴", questions:[
+      {type:"mc", kind:"UsdSkel",
+        q:"<b>UsdSkel</b> is the schema domain for:",
+        choices:["Skeletal (joint-based) animation & skinning","Lighting","File compression","Camera framing"],
+        answer:0,
+        explain:"<b>UsdSkel</b> encodes skeletons, joint animation, and mesh skinning efficiently."},
+      {type:"mc", kind:"UsdSkel",
+        q:"Binding a mesh so it deforms with a skeleton is done with:",
+        choices:["UsdSkelBindingAPI (joint weights)","material:binding","UsdPhysicsCollisionAPI","DomeLight"],
+        answer:0,
+        explain:"<b>SkelBindingAPI</b> attaches a mesh to a skeleton with joint indices and weights for skinning."},
+      {type:"mc", kind:"UsdSkel",
+        q:"Facial / shape-based deformations (e.g. expressions) use:",
+        choices:["BlendShapes","Payloads","Scopes","Layer offsets"],
+        answer:0,
+        explain:"<b>UsdSkelBlendShape</b> stores target deltas for blend-shape (morph) deformation."},
+    ]},
+  ]
+},
+{
+  title:"Unit 10 · Omniverse & Production",
+  subtitle:"NVIDIA's OpenUSD platform in practice",
+  color:"#76b900",
+  lessons:[
+    { name:"Omniverse Platform", icon:"🌐", questions:[
+      {type:"mc", kind:"Omniverse",
+        q:"Omniverse's collaboration and asset-serving backbone is called:",
+        choices:["Nucleus","Hydra","PhysX","Crate"],
+        answer:0,
+        explain:"<b>Nucleus</b> is Omniverse's database/collaboration server where USD assets are stored and shared."},
+      {type:"mc", kind:"Omniverse",
+        q:"Omniverse applications (like USD Composer) are built on:",
+        choices:["Kit (the Omniverse SDK)","Microsoft Word","Unreal Engine","Blender"],
+        answer:0,
+        explain:"<b>Kit</b> is the modular Omniverse SDK/framework apps are assembled from."},
+      {type:"mc", kind:"Omniverse",
+        q:"An Omniverse “Live” session enables:",
+        choices:["Real-time multi-user editing of the same USD","Offline rendering only","Locking the file to one user","Compressing textures"],
+        answer:0,
+        explain:"<b>Live</b> sessions let multiple people edit one USD stage simultaneously, changes streaming to all."},
+      {type:"mc", kind:"Omniverse",
+        q:"Omniverse <b>Connectors</b> let DCC tools (Maya, Blender, 3ds Max…):",
+        choices:["Exchange USD data with Omniverse","Render on the CPU","Replace USD with FBX","Disable physics"],
+        answer:0,
+        explain:"<b>Connectors</b> bridge popular content tools to Omniverse via OpenUSD."},
+    ]},
+    { name:"Materials at Scale (MDL)", icon:"🎛️", questions:[
+      {type:"mc", kind:"Materials",
+        q:"NVIDIA's physically based material definition language is:",
+        choices:["MDL","HTML","SQL","FBX"],
+        answer:0,
+        explain:"<b>MDL</b> (Material Definition Language) describes physically based materials portably across renderers."},
+      {type:"tf", kind:"True or False",
+        q:"The Omniverse RTX Renderer plugs into USD as a Hydra render delegate.",
+        answer:true,
+        explain:"True. RTX is exposed as a <b>Hydra render delegate</b>, so USD scenes render through it path-traced or in real time."},
+      {type:"mc", kind:"Materials",
+        q:"Both MDL and MaterialX share the goal of:",
+        choices:["Portable, renderer-agnostic material descriptions","Storing animation","Compressing meshes","Defining cameras"],
+        answer:0,
+        explain:"Both aim for <b>portable materials</b> that move between tools and renderers without rework."},
+    ]},
+  ]
+},
 ];
 
 /* ============================================================
@@ -946,8 +1136,10 @@ function startLesson(ui,li){
   regenHearts();
   if(S.hearts<=0){ showToast("Out of hearts! They refill over time ❤️"); renderHome(); return; }
   const unit=CURRICULUM[ui], lesson=unit.lessons[li];
-  // shallow copy + shuffle questions a little for replay value
-  const qs=lesson.questions.map(q=>({...q}));
+  // copy + shuffle question order each attempt so repeats feel fresh.
+  // Long lessons (>6 Q) draw a random subset for a snappier, varied session.
+  let pool=shuffle(lesson.questions.map(q=>({...q})));
+  const qs = pool.length>6 ? pool.slice(0,6) : pool;
   L={ui,li,key:ui+"-"+li,lesson,unit,qs,i:0,correct:0,wrong:0,started:Date.now(),selected:null,answered:false};
   home.classList.add("hidden");
   resultsEl.classList.remove("active");
