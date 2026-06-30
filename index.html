@@ -1309,6 +1309,45 @@ function shade(hex,p){
 }
 
 /* ============================================================
+   Sound FX — synthesized with the Web Audio API (no files).
+   Created lazily inside a user gesture to satisfy autoplay rules.
+   ============================================================ */
+const SOUND_KEY="usdquest_sound";
+let soundOn = localStorage.getItem(SOUND_KEY) !== "off";
+let actx=null;
+function audioCtx(){
+  try{
+    if(!actx){ const AC=window.AudioContext||window.webkitAudioContext; if(AC) actx=new AC(); }
+    if(actx && actx.state==="suspended") actx.resume();
+  }catch(e){}
+  return actx;
+}
+function tone(when,freq,dur,type,peak){
+  const c=actx; if(!c) return;
+  const o=c.createOscillator(), g=c.createGain();
+  o.type=type||"sine"; o.frequency.setValueAtTime(freq,when);
+  o.connect(g); g.connect(c.destination);
+  g.gain.setValueAtTime(0.0001,when);
+  g.gain.exponentialRampToValueAtTime(peak||0.22, when+0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, when+dur);
+  o.start(when); o.stop(when+dur+0.03);
+}
+function playCorrect(){ const c=audioCtx(); if(!soundOn||!c) return; const t=c.currentTime;
+  tone(t,659.25,0.12,"triangle",0.25); tone(t+0.085,987.77,0.20,"triangle",0.25); }   // E5 -> B5
+function playWrong(){ const c=audioCtx(); if(!soundOn||!c) return; const t=c.currentTime;
+  tone(t,196.0,0.16,"square",0.16); tone(t+0.11,146.83,0.30,"square",0.16); }           // G3 -> D3 buzz
+function playComplete(){ const c=audioCtx(); if(!soundOn||!c) return; const t=c.currentTime;
+  [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(t+i*0.12,f,0.22,"triangle",0.24));   // C-E-G-C arpeggio
+  tone(t+0.5,1046.5,0.55,"triangle",0.18); tone(t+0.5,1318.5,0.55,"triangle",0.10); }    // final chord
+function toggleSound(){
+  soundOn=!soundOn;
+  localStorage.setItem(SOUND_KEY, soundOn?"on":"off");
+  if(soundOn){ audioCtx(); playCorrect(); }   // little confirmation blip
+  showToast(soundOn?"Sound on 🔊":"Sound off 🔇");
+  if(!el("profile").classList.contains("hidden")) renderProfile();
+}
+
+/* ============================================================
    Lesson runtime
    ============================================================ */
 let L=null; // current lesson session
@@ -1450,6 +1489,7 @@ function evaluate(q){
 }
 
 function showFeedback(correct,q){
+  if(correct) playCorrect(); else playWrong();
   feedback.className="feedback "+(correct?"ok":"no")+" show";
   fbTitle.innerHTML = correct? "✅ Correct!" : ((!L.practice && S.hearts<=0)?"💔 Out of hearts":"❌ Not quite");
   fbExplain.innerHTML=q.explain||"";
@@ -1483,6 +1523,7 @@ function endLesson(passed){
     gainedXp=5+L.correct*2;
     S.xp+=gainedXp; save(); refreshTop();
     resultsEl.classList.add("active");
+    playComplete();
     const remaining=validMistakes().length;
     const third = L.practiceMode==="mistakes"
       ? `<div class="rstat time"><div class="v">${remaining}</div><div class="l">Mistakes left</div></div>`
@@ -1513,6 +1554,7 @@ function endLesson(passed){
 
   resultsEl.classList.add("active");
   if(passed){
+    playComplete();
     const perfect=L.wrong===0;
     resultsEl.innerHTML=`
       <div class="big">${perfect?"🏆":"🎉"}</div>
@@ -1545,7 +1587,8 @@ function endLesson(passed){
    Wiring
    ============================================================ */
 checkBtn.addEventListener("click",onCheck);
-continueBtn.addEventListener("click",()=>{feedback.classList.remove("show");});
+// the feedback sheet's Continue button advances straight to the next question (single tap)
+continueBtn.addEventListener("click",()=>{ if(L && L.answered) advance(); });
 el("quit").addEventListener("click",()=>{
   if(confirm("Quit this lesson? Progress in it will be lost.")){ feedback.classList.remove("show"); renderHome(); }
 });
@@ -1811,6 +1854,7 @@ function renderProfile(){
       <div id="unameMsg" class="auth-msg" style="text-align:left;min-height:16px"></div>`;
   }
   html+=`<div class="acct-actions">
+      <button class="reset" onclick="toggleSound()">${soundOn?'🔊 Sound: On':'🔇 Sound: Off'}</button>
       <button class="reset" onclick="exportProgress()">⬇ Export backup</button>
       <button class="reset" onclick="document.getElementById('importFile').click()">⬆ Import backup</button>
       <button class="reset" onclick="hardReset()">↺ Reset progress</button>
@@ -1830,7 +1874,7 @@ window.startLesson=startLesson; window.startPractice=startPractice; window.selec
 window.renderHome=renderHome; window.renderSocial=renderSocial; window.renderProfile=renderProfile;
 window.hardReset=hardReset; window.exportProgress=exportProgress;
 window.addFriend=addFriend; window.acceptReq=acceptReq; window.declineReq=declineReq; window.removeFriend=removeFriend;
-window.saveUsername=saveUsername; window.logoutConfirm=logoutConfirm;
+window.saveUsername=saveUsername; window.logoutConfirm=logoutConfirm; window.toggleSound=toggleSound;
 
 /* boot — resume session if logged in, else show login */
 async function boot(){
