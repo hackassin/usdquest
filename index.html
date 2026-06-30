@@ -197,7 +197,10 @@
   .empty-hearts{filter:grayscale(1);opacity:.3}
 
   /* ---------- User chip ---------- */
-  .stat.user{color:var(--text);cursor:pointer;max-width:150px}
+  .topbar{flex-wrap:nowrap}
+  .logo{flex:none}
+  .stat{flex:none;white-space:nowrap}
+  .stat.user{color:var(--text);cursor:pointer;max-width:150px;min-width:0}
   .stat.user:hover{background:var(--line)}
   .stat.user #uname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px}
 
@@ -304,13 +307,37 @@
   .ubar i{display:block;height:100%;border-radius:999px}
   .acct-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:8px}
   .reset.danger{color:var(--red)}
+
+  /* ---------- Responsive (phones) ---------- */
+  @media (max-width:540px){
+    .scroll{padding:8px 14px 110px}
+    .topbar{gap:7px;padding:11px 12px}
+    .logo{font-size:16px;gap:6px}
+    .logo .cube{font-size:19px}
+    .stat{font-size:13px;padding:5px 9px;gap:4px}
+    .stat .ico{font-size:14px}
+    .stat.user{max-width:120px}
+    .stat.user #uname{max-width:62px}
+    .unit-head{padding:14px 16px}
+    .unit-head h2{font-size:16px}
+    .q-text{font-size:20px}
+  }
+  @media (max-width:400px){
+    .topbar{gap:6px;padding:10px 10px}
+    .logo .wordmark{display:none}      /* keep the cube, drop the wordmark */
+    .stat{padding:5px 8px}
+    .stat.user #uname{display:none}    /* show just the 👤 icon; full name lives on Profile */
+    .stat-grid{gap:8px}
+    .ptile{padding:12px 4px}
+    .ptile .pv{font-size:19px}
+  }
 </style>
 </head>
 <body>
 <div class="app">
   <!-- TOP BAR -->
   <div class="topbar" id="topbar">
-    <div class="logo"><span class="cube">🧊</span><span>USD<b>Quest</b></span></div>
+    <div class="logo"><span class="cube">🧊</span><span class="wordmark">USD<b>Quest</b></span></div>
     <div class="spacer"></div>
     <div class="stat streak" title="Day streak"><span class="ico">🔥</span><span id="streak">0</span></div>
     <div class="stat xp" title="Total XP"><span class="ico">⚡</span><span id="xp">0</span></div>
