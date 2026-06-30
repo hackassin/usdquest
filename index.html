@@ -240,6 +240,66 @@
   .pcard.mistakes .pcount{color:#ff8b8f}
   .section-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);
     font-weight:800;margin:18px 2px 2px}
+
+  /* ---------- Bottom nav ---------- */
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:680px;z-index:30;
+    display:flex;background:rgba(11,20,24,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom)}
+  .nav.hidden{display:none}
+  .navbtn{flex:1;background:none;color:var(--muted);padding:9px 4px 11px;display:flex;flex-direction:column;
+    align-items:center;gap:2px;font-size:11px;font-weight:800;letter-spacing:.3px}
+  .navbtn span{font-size:21px;line-height:1;opacity:.6}
+  .navbtn.active{color:var(--green-l)}
+  .navbtn.active span{opacity:1}
+  .empty-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;
+    color:var(--muted);font-size:14px;line-height:1.55;text-align:center}
+  .empty-card b{color:var(--green-l)}
+
+  /* ---------- Leaderboard ---------- */
+  .board{display:flex;flex-direction:column;gap:8px}
+  .board-row{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:11px 14px}
+  .board-row.me{border-color:var(--green);background:rgba(118,185,0,.12)}
+  .board-row .medal{font-size:20px;width:30px;text-align:center;flex:none}
+  .board-row .medal .rank{color:var(--muted);font-weight:800;font-size:15px}
+  .board-row .who{flex:1;display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .board-row .who b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .board-row .who span{font-size:12px;color:var(--muted)}
+  .board-row .bxp{font-weight:800;color:var(--green-l);flex:none}
+
+  /* ---------- Friends ---------- */
+  .friend-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;margin-bottom:8px}
+  .friend-row .who{flex:1;display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .friend-row .who b{font-size:14px}
+  .friend-row .who span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .addfriend{display:flex;gap:8px;margin:4px 0 6px}
+  .addfriend input{flex:1;min-width:0;background:var(--ink);border:2px solid var(--line);border-radius:11px;
+    padding:11px 12px;color:var(--text);font-size:15px;font-weight:600}
+  .addfriend input:focus{border-color:var(--blue)}
+  .mini{padding:9px 14px;border-radius:10px;font-weight:800;font-size:13px;flex:none}
+  .mini.add,.mini.ok{background:var(--green);color:#06140a}
+  .mini.no{background:var(--panel-2);color:var(--muted);border:1px solid var(--line)}
+  .frbtns{display:flex;gap:6px}
+
+  /* ---------- Profile ---------- */
+  .profile-head{display:flex;align-items:center;gap:14px;margin:10px 0 8px}
+  .profile-head .avatar{width:60px;height:60px;border-radius:50%;flex:none;
+    background:linear-gradient(160deg,var(--green),var(--green-d));
+    display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#06140a}
+  .profile-head h2{margin:0;font-size:21px}
+  .profile-head p{margin:2px 0 0;color:var(--muted);font-size:13px}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 4px}
+  .ptile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 6px;text-align:center}
+  .ptile .pv{font-size:21px;font-weight:900;color:var(--green-l)}
+  .ptile .pl{font-size:10.5px;color:var(--muted);margin-top:3px}
+  .uprog{margin-bottom:10px}
+  .uprog-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px}
+  .uprog-top span:last-child{color:var(--muted)}
+  .ubar{height:9px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .ubar i{display:block;height:100%;border-radius:999px}
+  .acct-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:8px}
+  .reset.danger{color:var(--red)}
 </style>
 </head>
 <body>
@@ -276,6 +336,12 @@
   <!-- HOME / PATH -->
   <div class="scroll" id="home"></div>
 
+  <!-- LEADERBOARD / FRIENDS -->
+  <div class="scroll hidden" id="social"></div>
+
+  <!-- PROFILE / STATS -->
+  <div class="scroll hidden" id="profile"></div>
+
   <!-- LESSON -->
   <div class="lesson" id="lesson">
     <div class="l-top">
@@ -291,6 +357,13 @@
   <div class="results" id="results"></div>
 
   <div class="footer-note" id="fnote"></div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="nav hidden" id="nav">
+    <button class="navbtn active" data-s="home" onclick="renderHome()"><span>🎯</span><b>Learn</b></button>
+    <button class="navbtn" data-s="social" onclick="renderSocial()"><span>🏆</span><b>Leaderboard</b></button>
+    <button class="navbtn" data-s="profile" onclick="renderProfile()"><span>👤</span><b>Profile</b></button>
+  </nav>
 </div>
 
 <input type="file" id="importFile" accept="application/json,.json" class="hidden"/>
@@ -894,6 +967,7 @@ const defaultState = () => ({
   streak:0, lastPlayDay:null,
   completed:{},        // "u-l" -> {best:0..1}
   mistakes:[],         // array of question ids still to review
+  answered:0, correct:0, cleared:0,  // lifetime stats for profile page
 });
 
 let accounts = loadAccounts();
@@ -952,6 +1026,7 @@ async function pushCloud(){
   if(!cloud || !currentUser) return;
   try{ await cloud.from("progress").upsert({ user_id:currentUser, data:S, updated_at:new Date().toISOString() }); }
   catch(e){ console.warn("Cloud save failed:", e); }
+  pushProfile(); // keep public leaderboard stats in sync
 }
 async function flushPush(){ clearTimeout(pushTimer); await pushCloud(); }
 
@@ -970,6 +1045,7 @@ async function onCloudSignedIn(user){
     await pushCloud(); // create the user's row
   }
   if(!Array.isArray(S.mistakes)) S.mistakes=[];
+  await ensureProfile(user);
   localStorage.setItem("usdquest_cache_"+user.id, JSON.stringify(S));
 }
 async function cloudSignUp(email,pass){
@@ -982,6 +1058,92 @@ async function cloudLogin(email,pass){
   const {data,error}=await cloud.auth.signInWithPassword({ email:(email||"").trim(), password:pass });
   if(error) return error.message;
   await onCloudSignedIn(data.user); return null;
+}
+
+/* ---- Public profile (for leaderboard & friend search) ---- */
+let userHandle = "";   // unique @handle used socially
+function sanitizeHandle(s){ return (s||"").trim().toLowerCase().replace(/[^a-z0-9_]/g,""); }
+
+async function ensureProfile(user){
+  try{
+    const {data}=await cloud.from("profiles").select("username").eq("id",user.id).maybeSingle();
+    if(data && data.username){ userHandle=data.username; pushProfile(); return; }
+  }catch(e){ console.warn("profile lookup failed:", e); return; }
+  let base=sanitizeHandle((user.email||"learner").split("@")[0]); if(base.length<3) base="usd"+base;
+  for(let i=0;i<6;i++){
+    const cand = i===0 ? base : base+Math.floor(1000+Math.random()*9000);
+    try{
+      const {error}=await cloud.from("profiles").insert({ id:user.id, username:cand, display_name:userDisplay,
+        xp:S.xp, streak:S.streak, lessons:Object.keys(S.completed).length });
+      if(!error){ userHandle=cand; return; }
+      if(!/duplicate|unique|23505/i.test((error.message||"")+(error.code||""))){ console.warn("profile insert:", error); return; }
+    }catch(e){ console.warn(e); return; }
+  }
+}
+async function pushProfile(){
+  if(!cloud || !currentUser || !userHandle) return;
+  try{ await cloud.from("profiles").upsert({ id:currentUser, username:userHandle, display_name:userDisplay,
+    xp:S.xp, streak:S.streak, lessons:Object.keys(S.completed).length, updated_at:new Date().toISOString() }); }
+  catch(e){ console.warn("profile push failed:", e); }
+}
+async function changeUsername(name){
+  const h=sanitizeHandle(name);
+  if(h.length<3) return "Username needs at least 3 letters/numbers.";
+  if(h===userHandle) return null;
+  try{
+    const {error}=await cloud.from("profiles").update({ username:h, updated_at:new Date().toISOString() }).eq("id",currentUser);
+    if(error){ if(/duplicate|unique|23505/i.test((error.message||"")+(error.code||""))) return "That username is taken."; return error.message; }
+    userHandle=h; return null;
+  }catch(e){ return e.message; }
+}
+
+/* ---- Friends ---- */
+async function sendFriendRequest(handle){
+  const h=sanitizeHandle(handle);
+  if(!h) return "Enter a username.";
+  if(h===userHandle) return "That's your own username 🙂";
+  try{
+    const {data:prof}=await cloud.from("profiles").select("id,username").eq("username",h).maybeSingle();
+    if(!prof) return "No user found with that username.";
+    const {data:ex}=await cloud.from("friendships").select("id")
+      .or(`and(requester.eq.${currentUser},addressee.eq.${prof.id}),and(requester.eq.${prof.id},addressee.eq.${currentUser})`);
+    if(ex && ex.length) return "Already friends or a request is pending.";
+    const {error}=await cloud.from("friendships").insert({ requester:currentUser, addressee:prof.id, status:"pending" });
+    if(error) return error.message;
+    return null;
+  }catch(e){ return e.message; }
+}
+async function respondRequest(id, accept){
+  try{
+    if(accept) await cloud.from("friendships").update({ status:"accepted" }).eq("id",id);
+    else await cloud.from("friendships").delete().eq("id",id);
+  }catch(e){ console.warn(e); }
+}
+async function unfriend(id){ try{ await cloud.from("friendships").delete().eq("id",id); }catch(e){ console.warn(e); } }
+
+async function loadSocial(){
+  const out={ friends:[], incoming:[], outgoing:[], leaderboard:[], me:null, error:null };
+  if(!cloud || !currentUser){ out.error="local"; return out; }
+  try{
+    const {data:fs, error}=await cloud.from("friendships").select("id,requester,addressee,status")
+      .or(`requester.eq.${currentUser},addressee.eq.${currentUser}`);
+    if(error){ out.error=error.message; return out; }
+    const ids=new Set([currentUser]);
+    (fs||[]).forEach(f=>{ ids.add(f.requester); ids.add(f.addressee); });
+    const {data:profs, error:pe}=await cloud.from("profiles").select("id,username,display_name,xp,streak,lessons").in("id",[...ids]);
+    if(pe){ out.error=pe.message; return out; }
+    const pmap={}; (profs||[]).forEach(p=>pmap[p.id]=p);
+    out.me = pmap[currentUser] || { id:currentUser, username:userHandle, display_name:userDisplay, xp:S.xp, streak:S.streak };
+    const friendProfiles=[];
+    (fs||[]).forEach(f=>{
+      const other = f.requester===currentUser ? f.addressee : f.requester;
+      if(f.status==="accepted"){ const p=pmap[other]; if(p){ friendProfiles.push(p); out.friends.push({fid:f.id, p}); } }
+      else if(f.addressee===currentUser){ out.incoming.push({fid:f.id, p:pmap[other]}); }
+      else { out.outgoing.push({fid:f.id, p:pmap[other]}); }
+    });
+    out.leaderboard=[out.me, ...friendProfiles].filter(Boolean).sort((a,b)=>(b.xp||0)-(a.xp||0));
+  }catch(e){ out.error=e.message; }
+  return out;
 }
 
 /* mistakes bank */
@@ -1111,14 +1273,28 @@ function renderHome(){
     html+=`</div>`;
   });
   home.innerHTML=html;
+  hideAllScreens();
   home.classList.remove("hidden");
+  showNav("home");
+  el("fnote").innerHTML = cloud
+    ? '☁️ Synced to your account — open on any device.'
+    : 'Saved locally in this browser.';
+}
+
+/* ---------- screen / nav helpers ---------- */
+function hideAllScreens(){
+  home.classList.add("hidden");
+  el("social").classList.add("hidden");
+  el("profile").classList.add("hidden");
   lessonEl.classList.remove("active");
   resultsEl.classList.remove("active");
-  el("fnote").innerHTML='Progress saves automatically in your browser.<br>'
-    +'<button class="reset" onclick="exportProgress()">⬇ Export backup</button> &nbsp;·&nbsp; '
-    +'<button class="reset" onclick="document.getElementById(\'importFile\').click()">⬆ Import backup</button> &nbsp;·&nbsp; '
-    +'<button class="reset" onclick="hardReset()">Reset progress</button>';
 }
+function showNav(active){
+  el("nav").classList.remove("hidden");
+  document.querySelectorAll("#nav .navbtn").forEach(b=>b.classList.toggle("active", b.dataset.s===active));
+}
+function hideNav(){ el("nav").classList.add("hidden"); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
 /* small color shader */
 function shade(hex,p){
@@ -1141,8 +1317,7 @@ function startLesson(ui,li){
   let pool=shuffle(lesson.questions.map(q=>({...q})));
   const qs = pool.length>6 ? pool.slice(0,6) : pool;
   L={ui,li,key:ui+"-"+li,lesson,unit,qs,i:0,correct:0,wrong:0,started:Date.now(),selected:null,answered:false};
-  home.classList.add("hidden");
-  resultsEl.classList.remove("active");
+  hideAllScreens(); hideNav();
   lessonEl.classList.add("active");
   renderQuestion();
 }
@@ -1162,8 +1337,7 @@ function startPractice(mode){
   const qs=ids.map(id=>({...ALL_Q[id].q}));   // copy keeps _id
   L={practice:true, practiceMode:mode, qs, i:0, correct:0, wrong:0, started:Date.now(), selected:null, answered:false,
      title: mode==="mistakes" ? "Review Mistakes" : "Quick Practice"};
-  home.classList.add("hidden");
-  resultsEl.classList.remove("active");
+  hideAllScreens(); hideNav();
   lessonEl.classList.add("active");
   renderQuestion();
 }
@@ -1253,7 +1427,12 @@ function evaluate(q){
     inp.style.borderColor = correct? "var(--green)":"var(--red)";
   }
 
-  if(correct){ L.correct++; removeMistake(q._id); }
+  S.answered=(S.answered||0)+1;
+  if(correct){
+    L.correct++; S.correct=(S.correct||0)+1;
+    if(S.mistakes.includes(q._id)) S.cleared=(S.cleared||0)+1; // re-answered a past mistake
+    removeMistake(q._id);
+  }
   else{
     L.wrong++; addMistake(q._id);
     if(!L.practice){
@@ -1433,9 +1612,7 @@ el("importFile").addEventListener("change",e=>{
 function showLogin(){
   el("login").classList.add("active");
   el("topbar").style.display="none";
-  home.classList.add("hidden");
-  lessonEl.classList.remove("active");
-  resultsEl.classList.remove("active");
+  hideAllScreens(); hideNav();
   el("fnote").innerHTML="";
   el("authUser").value=""; el("authPass").value="";
   const m=el("authMsg"); m.textContent=""; m.className="auth-msg";
@@ -1467,9 +1644,137 @@ el("authPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doAuth("login
 el("authUser").addEventListener("keydown",e=>{ if(e.key==="Enter") el("authPass").focus(); });
 el("userChip").addEventListener("click",()=>{ if(confirm("Log out? Your progress is saved to this account.")) logout(); });
 
+/* ============================================================
+   Leaderboard / Friends screen
+   ============================================================ */
+async function renderSocial(){
+  refreshTop();
+  hideAllScreens(); el("social").classList.remove("hidden"); showNav("social");
+  const c=el("social");
+  if(!cloud){
+    c.innerHTML=`<div class="section-label">🏆 Leaderboard</div>
+      <div class="empty-card">Friends & leaderboards need a cloud account.<br>You're in <b>local mode</b> — set up Supabase to compete with friends.</div>`;
+    return;
+  }
+  c.innerHTML=`<div class="section-label">🏆 Leaderboard</div><div class="empty-card">Loading…</div>`;
+  const d=await loadSocial();
+  if(d.error && d.error!=="local"){
+    c.innerHTML=`<div class="section-label">🏆 Leaderboard</div>
+      <div class="empty-card">Couldn't load social data.<br><small>${esc(d.error)}</small><br><br>
+      If this is the first time, the <b>friends tables</b> may not exist yet — run <code>schema-v2.sql</code> in Supabase (see CLOUD-SETUP).</div>`;
+    return;
+  }
+  let html=`<div class="section-label">🏆 Leaderboard</div><div class="board">`;
+  d.leaderboard.forEach((p,i)=>{
+    const me=p.id===currentUser;
+    const medal=["🥇","🥈","🥉"][i] || `<span class="rank">${i+1}</span>`;
+    html+=`<div class="board-row${me?' me':''}">
+      <div class="medal">${medal}</div>
+      <div class="who"><b>${esc(p.display_name||p.username)}${me?' (you)':''}</b><span>@${esc(p.username||'')} · 🔥 ${p.streak||0}</span></div>
+      <div class="bxp">⚡ ${p.xp||0}</div></div>`;
+  });
+  html+=`</div>`;
+
+  if(d.incoming.length){
+    html+=`<div class="section-label">Friend requests</div>`;
+    d.incoming.forEach(r=>{ const p=r.p||{};
+      html+=`<div class="friend-row">
+        <div class="who"><b>${esc(p.display_name||p.username||'Someone')}</b><span>@${esc(p.username||'')}</span></div>
+        <div class="frbtns"><button class="mini ok" onclick="acceptReq('${r.fid}')">Accept</button>
+        <button class="mini no" onclick="declineReq('${r.fid}')">✕</button></div></div>`; });
+  }
+
+  html+=`<div class="section-label">Add a friend</div>
+    <div class="addfriend"><input id="friendInput" placeholder="their @username" autocapitalize="off" spellcheck="false"/>
+      <button class="mini add" onclick="addFriend()">Add</button></div>
+    <div id="friendMsg" class="auth-msg" style="text-align:left;min-height:16px"></div>`;
+
+  html+=`<div class="section-label">Friends (${d.friends.length})</div>`;
+  if(!d.friends.length){
+    html+=`<div class="empty-card">No friends yet. Share your handle <b>@${esc(userHandle)}</b> so others can add you!</div>`;
+  } else {
+    d.friends.forEach(({fid,p})=>{ html+=`<div class="friend-row">
+      <div class="who"><b>${esc(p.display_name||p.username)}</b><span>@${esc(p.username)} · ⚡ ${p.xp||0} · 🔥 ${p.streak||0}</span></div>
+      <button class="mini no" onclick="removeFriend('${fid}')">Remove</button></div>`; });
+  }
+  if(d.outgoing.length){
+    html+=`<div class="section-label">Pending sent</div>`;
+    d.outgoing.forEach(r=>{ const p=r.p||{};
+      html+=`<div class="friend-row"><div class="who"><b>@${esc(p.username||'…')}</b><span>request sent</span></div>
+        <button class="mini no" onclick="removeFriend('${r.fid}')">Cancel</button></div>`; });
+  }
+  c.innerHTML=html;
+}
+async function addFriend(){
+  const m=el("friendMsg"); if(m){ m.className="auth-msg"; m.textContent="Sending…"; }
+  const err=await sendFriendRequest(el("friendInput").value);
+  if(err){ if(m){ m.textContent=err; m.className="auth-msg"; } return; }
+  showToast("Friend request sent ✅"); renderSocial();
+}
+async function acceptReq(id){ await respondRequest(id,true); showToast("Friend added 🎉"); renderSocial(); }
+async function declineReq(id){ await respondRequest(id,false); renderSocial(); }
+async function removeFriend(id){ if(confirm("Remove this connection?")){ await unfriend(id); renderSocial(); } }
+
+/* ============================================================
+   Profile / Stats screen
+   ============================================================ */
+function renderProfile(){
+  refreshTop();
+  hideAllScreens(); el("profile").classList.remove("hidden"); showNav("profile");
+  const totalLessons=CURRICULUM.reduce((a,u)=>a+u.lessons.length,0);
+  const done=Object.keys(S.completed).length;
+  const acc = S.answered ? Math.round((S.correct/S.answered)*100) : 0;
+  const tile=(ic,v,l)=>`<div class="ptile"><div class="pv">${v}</div><div class="pl">${ic} ${l}</div></div>`;
+
+  let html=`<div class="profile-head">
+      <div class="avatar">${esc((userDisplay||'U').slice(0,1).toUpperCase())}</div>
+      <div><h2>${esc(userDisplay||'Learner')}</h2><p>${cloud?('@'+esc(userHandle||'…')):'local account'}</p></div>
+    </div>`;
+  html+=`<div class="stat-grid">
+      ${tile('⚡',S.xp,'Total XP')}
+      ${tile('🔥',S.streak,'Streak')}
+      ${tile('✅',done+'/'+totalLessons,'Lessons')}
+      ${tile('🎯',acc+'%','Accuracy')}
+      ${tile('🩹',validMistakes().length,'To review')}
+      ${tile('💪',S.cleared||0,'Cleared')}
+    </div>`;
+
+  html+=`<div class="section-label">Progress by unit</div>`;
+  CURRICULUM.forEach((u,ui)=>{
+    const tot=u.lessons.length;
+    const dn=u.lessons.filter((l,li)=>isCompleted(ui+"-"+li)).length;
+    const pct=Math.round(dn/tot*100);
+    html+=`<div class="uprog"><div class="uprog-top"><span>${esc(u.title)}</span><span>${dn}/${tot}</span></div>
+      <div class="ubar"><i style="width:${pct}%;background:${u.color}"></i></div></div>`;
+  });
+
+  html+=`<div class="section-label">Account</div>`;
+  if(cloud){
+    html+=`<div class="addfriend"><input id="unameInput" value="${esc(userHandle||'')}" autocapitalize="off" spellcheck="false" placeholder="username"/>
+      <button class="mini add" onclick="saveUsername()">Save</button></div>
+      <div id="unameMsg" class="auth-msg" style="text-align:left;min-height:16px"></div>`;
+  }
+  html+=`<div class="acct-actions">
+      <button class="reset" onclick="exportProgress()">⬇ Export backup</button>
+      <button class="reset" onclick="document.getElementById('importFile').click()">⬆ Import backup</button>
+      <button class="reset" onclick="hardReset()">↺ Reset progress</button>
+      <button class="reset danger" onclick="logoutConfirm()">⎋ Log out</button>
+    </div>`;
+  el("profile").innerHTML=html;
+}
+async function saveUsername(){
+  const m=el("unameMsg"); m.className="auth-msg"; m.textContent="Saving…";
+  const err=await changeUsername(el("unameInput").value);
+  if(err){ m.textContent=err; m.className="auth-msg"; return; }
+  m.textContent="Saved!"; m.className="auth-msg ok"; refreshTop();
+}
+function logoutConfirm(){ if(confirm("Log out? Your progress is saved to this account.")) logout(); }
+
 window.startLesson=startLesson; window.startPractice=startPractice; window.selectChoice=selectChoice;
-window.renderHome=renderHome; window.hardReset=hardReset;
-window.exportProgress=exportProgress;
+window.renderHome=renderHome; window.renderSocial=renderSocial; window.renderProfile=renderProfile;
+window.hardReset=hardReset; window.exportProgress=exportProgress;
+window.addFriend=addFriend; window.acceptReq=acceptReq; window.declineReq=declineReq; window.removeFriend=removeFriend;
+window.saveUsername=saveUsername; window.logoutConfirm=logoutConfirm;
 
 /* boot — resume session if logged in, else show login */
 async function boot(){
