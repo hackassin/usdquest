@@ -308,6 +308,40 @@
   .acct-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:8px}
   .reset.danger{color:var(--red)}
 
+  /* ---------- Bonus-heart goal ---------- */
+  .heart-goal{display:flex;align-items:center;gap:10px;margin:4px 0 10px;font-size:12px;color:var(--muted);font-weight:700}
+  .hg-bar{flex:none;width:80px;height:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .hg-bar i{display:block;height:100%;background:var(--red);border-radius:999px;transition:width .3s}
+
+  /* ---------- Match the pairs ---------- */
+  .pairs{display:flex;gap:10px}
+  .pcol{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .pair{background:var(--panel);border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;
+    padding:15px 8px;color:var(--text);font-weight:600;font-size:14px;line-height:1.25;transition:.05s}
+  .pair.sel{border-color:var(--blue);background:rgba(28,176,246,.14)}
+  .pair.locked{border-color:var(--green);background:rgba(118,185,0,.16);opacity:.5;pointer-events:none}
+  .pair.bad{border-color:var(--red);background:rgba(255,90,95,.16)}
+
+  /* ---------- Study rows ---------- */
+  .study-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;color:var(--text)}
+  .study-row .sr-ico{font-size:20px;flex:none}
+  .study-row .sr-name{flex:1;font-weight:600;font-size:14px}
+  .study-row .sr-tag{font-size:11px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);
+    padding:3px 8px;border-radius:999px;flex:none}
+
+  /* ---------- Notes modal ---------- */
+  .notes-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+    padding:22px;background:rgba(4,10,12,.72);backdrop-filter:blur(4px)}
+  .notes-modal.show{display:flex}
+  .notes-card{width:100%;max-width:440px;max-height:86vh;overflow-y:auto;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);padding:24px 22px;box-shadow:var(--shadow)}
+  .notes-emoji{font-size:40px;text-align:center}
+  .notes-card h2{margin:6px 0 14px;text-align:center;font-size:21px}
+  .notes-card ul{margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+  .notes-card li{position:relative;padding-left:26px;font-size:14.5px;line-height:1.5;color:#d4e6da}
+  .notes-card li:before{content:"▸";position:absolute;left:6px;color:var(--green-l);font-weight:900}
+
   /* ---------- Responsive (phones) ---------- */
   @media (max-width:540px){
     .scroll{padding:8px 14px 110px}
@@ -370,6 +404,9 @@
   <!-- LEADERBOARD / FRIENDS -->
   <div class="scroll hidden" id="social"></div>
 
+  <!-- STUDY / NOTES -->
+  <div class="scroll hidden" id="study"></div>
+
   <!-- PROFILE / STATS -->
   <div class="scroll hidden" id="profile"></div>
 
@@ -392,9 +429,20 @@
   <!-- BOTTOM NAV -->
   <nav class="nav hidden" id="nav">
     <button class="navbtn active" data-s="home" onclick="renderHome()"><span>🎯</span><b>Learn</b></button>
-    <button class="navbtn" data-s="social" onclick="renderSocial()"><span>🏆</span><b>Leaderboard</b></button>
+    <button class="navbtn" data-s="study" onclick="renderStudy()"><span>📖</span><b>Study</b></button>
+    <button class="navbtn" data-s="social" onclick="renderSocial('league')"><span>🏆</span><b>League</b></button>
     <button class="navbtn" data-s="profile" onclick="renderProfile()"><span>👤</span><b>Profile</b></button>
   </nav>
+</div>
+
+<!-- NOTES MODAL -->
+<div class="notes-modal" id="notesModal">
+  <div class="notes-card">
+    <div class="notes-emoji" id="notesEmoji">📖</div>
+    <h2 id="notesTitle">Notes</h2>
+    <ul id="notesList"></ul>
+    <button class="btn" id="notesBtn">Start lesson →</button>
+  </div>
 </div>
 
 <input type="file" id="importFile" accept="application/json,.json" class="hidden"/>
@@ -480,6 +528,11 @@ const CURRICULUM = [
         choices:[".usda",".usdc",".usdz",".usd (binary)"],
         answer:0,
         explain:"<b>.usda</b> is ASCII text — the only form you can comfortably read and edit by hand."},
+      {type:"pairs", kind:"Match the pairs",
+        q:"Match each USD file format to what it is",
+        sub:"Tap a format, then its description.",
+        pairs:[[".usda","Human-readable text"],[".usdc","Fast binary 'Crate'"],[".usdz","Zipped delivery package"]],
+        explain:"<b>.usda</b> = text, <b>.usdc</b> = fast binary, <b>.usdz</b> = a zipped bundle for delivery."},
     ]},
   ]
 },
@@ -513,6 +566,12 @@ const CURRICULUM = [
         sub:"One word (the method name).",
         answer:["open"],
         explain:"<code>Usd.Stage.Open(path)</code> opens an existing stage; <code>CreateNew</code> makes a new one."},
+      {type:"mc", kind:"Read the code",
+        code:`#usda 1.0\n(\n    defaultPrim = "World"\n)\n\ndef Xform "World"\n{\n    def Mesh "Cube" {}\n}`,
+        q:"In this layer, what is <code>Cube</code>?",
+        choices:["A Mesh prim, child of the World Xform","The stage's root layer","A material","A variant set"],
+        answer:0,
+        explain:"<code>def Mesh \"Cube\"</code> nested inside <code>def Xform \"World\"</code> makes Cube a Mesh prim and a child of World."},
     ]},
     { name:"Layers & Opinions", icon:"🧅", questions:[
       {type:"mc", kind:"Opinions",
@@ -572,6 +631,17 @@ const CURRICULUM = [
         q:"A USD attribute can store different values at different times (time samples).",
         answer:true,
         explain:"True. Attributes support <b>timeSamples</b>, enabling animation; a single non-animated value is the 'default'."},
+      {type:"mc", kind:"Read the code",
+        code:`def Mesh "Ball"\n{\n    point3f[] points = [...]\n    rel material:binding = </Looks/Red>\n}`,
+        q:"In this snippet, <code>material:binding</code> is a:",
+        choices:["Relationship — it points to another prim","Attribute — it stores values","A variant","A layer"],
+        answer:0,
+        explain:"<code>rel</code> marks a <b>relationship</b> targeting <code>/Looks/Red</code>. <code>points</code> above is an attribute (stores data)."},
+      {type:"pairs", kind:"Match the pairs",
+        q:"Match each USD term to its meaning",
+        sub:"Tap a term, then its meaning.",
+        pairs:[["Prim","A named scene object"],["Attribute","A typed value"],["Relationship","A pointer to a prim"],["Stage","The composed scenegraph"]],
+        explain:"Prims hold <b>attributes</b> (typed data) and <b>relationships</b> (pointers). The <b>stage</b> is the composed view."},
     ]},
     { name:"Metadata & Kind", icon:"🏷️", questions:[
       {type:"mc", kind:"Metadata",
@@ -672,6 +742,11 @@ const CURRICULUM = [
         sub:"One word.",
         answer:["variants","variant","variant sets"],
         explain:"<b>V = Variants.</b> Variant opinions are stronger than references but weaker than inherits."},
+      {type:"pairs", kind:"Match the pairs",
+        q:"Match each LIVRPS letter to its arc",
+        sub:"Tap a letter, then its composition arc.",
+        pairs:[["L","Local"],["I","Inherits"],["V","Variants"],["R","References"],["P","Payloads"],["S","Specializes"]],
+        explain:"<b>LIVRPS</b> = Local, Inherits, Variants, References, Payloads, Specializes — strongest to weakest."},
     ]},
   ]
 },
@@ -964,6 +1039,81 @@ const CURRICULUM = [
    Question index — give every question a stable id so mistakes
    can be stored and reattempted later.
    ============================================================ */
+/* ============================================================
+   Study notes — short "tips" shown once before a lesson (and
+   revisitable in the Study tab). Keyed by "unitIndex-lessonIndex".
+   ============================================================ */
+const NOTES = {
+  "0-0":["OpenUSD = Universal Scene Description, created by Pixar, open-sourced in 2016.",
+         "It's a system for describing AND composing 3D scenes — not just a file format.",
+         "NVIDIA Omniverse is built on OpenUSD; the AOUSD standardizes it.",
+         "Superpower: non-destructive composition so many people can collaborate."],
+  "0-1":[".usda = human-readable ASCII (hand-editable).",".usdc = binary 'Crate' (fast, memory-mapped, big scenes).",
+         ".usd = either ASCII or binary (auto-detected).",".usdz = zipped package for delivery (e.g. AR)."],
+  "1-0":["A Stage is the composed scenegraph you open, traverse and render.",
+         "A Layer is one file of scene description; a stage composes many layers.",
+         "The edit target is the layer your changes are written to (root layer by default).",
+         "Open a stage in Python with Usd.Stage.Open('scene.usd')."],
+  "1-1":["Competing values are 'opinions'; the strongest layer wins (value resolution).",
+         "In a layer stack, sublayers listed FIRST are STRONGER.",
+         "Deleting a strong opinion reveals the next one — editing is non-destructive."],
+  "2-0":["A Prim is a named node (mesh, light, group…) in the /path/hierarchy.",
+         "Prims hold two property kinds: Attributes (typed values) and Relationships (pointers to prims).",
+         "Paths are '/'-delimited like a filesystem.",
+         "defaultPrim sets which prim is pulled in when the layer is referenced."],
+  "2-1":["kind (component/group/assembly) classifies a prim's role in the model hierarchy.",
+         "active=false prunes a prim (and children) from the stage — non-destructive.",
+         "visibility only hides from render; the prim still composes."],
+  "3-0":["A reference brings another asset/layer's prims into your scene (reuse).",
+         "A payload is a reference that can be loaded/unloaded on demand — for huge scenes.",
+         "Both are core composition arcs."],
+  "3-1":["A variant set packages swappable configurations behind one switch (e.g. color, LOD).",
+         "The variant selection chooses the active option and recomposes that subtree."],
+  "3-2":["LIVRPS = strength order of composition arcs, STRONGEST → weakest:",
+         "Local, Inherits, Variants, References, Payloads, Specializes.",
+         "Local (root layer stack) always wins; Specializes is always overridable.",
+         "Memorize LIVRPS — it's the heart of value resolution."],
+  "4-0":["A typed / IsA schema defines what a prim IS (its type), e.g. Mesh, Xform.",
+         "An API schema is a mix-in adding extra properties/behavior (e.g. PhysicsRigidBodyAPI).",
+         "One type per prim, but many applied API schemas."],
+  "4-1":["Xform = a transformable prim (holds the xformOp stack).",
+         "Mesh = polygonal geometry (points, faceVertexCounts, faceVertexIndices).",
+         "Scope = a pure grouping prim with NO transform (like a folder)."],
+  "5-0":["Hydra is USD's rendering architecture connecting scene data to renderers.",
+         "A render delegate is a pluggable backend (Storm, RenderMan, RTX…).",
+         "Same scene → many renderers, unchanged."],
+  "5-1":["UsdShade defines Material and Shader prims wired into networks.",
+         "MaterialX / UsdPreviewSurface give portable, renderer-agnostic materials.",
+         "Geometry points to its material via the material:binding relationship."],
+  "6-0":["UsdLux lights are prims with schemas (compose/reference like anything).",
+         "DomeLight = image-based environment lighting; DistantLight = sun (parallel rays).",
+         "RectLight = rectangular area light (soft shadows)."],
+  "6-1":["UsdGeomCamera: focalLength controls field of view (zoom).",
+         "clippingRange sets near/far visible distances.",
+         "projection can be perspective or orthographic."],
+  "7-0":["Apply UsdPhysicsRigidBodyAPI to make a prim a simulated dynamic body.",
+         "Apply UsdPhysicsCollisionAPI so it can collide.",
+         "PhysicsScene holds global settings like gravity.",
+         "Physics is expressed via applied API schemas."],
+  "7-1":["Joints constrain motion between bodies (fixed, revolute, prismatic).",
+         "A physics material sets friction & restitution (bounciness).",
+         "NVIDIA's engine behind Omniverse physics is PhysX."],
+  "8-0":["Animated values are stored as timeSamples (USD interpolates between them).",
+         "timeCodesPerSecond maps time codes to seconds (playback rate).",
+         "startTimeCode/endTimeCode define the playable range.",
+         "No time samples = a constant default value."],
+  "8-1":["UsdSkel handles skeletal (joint-based) animation & skinning.",
+         "UsdSkelBindingAPI binds a mesh to a skeleton via joint weights.",
+         "BlendShapes drive shape-based deformation (e.g. facial)."],
+  "9-0":["Nucleus is Omniverse's collaboration/asset server.",
+         "Kit is the SDK Omniverse apps (like USD Composer) are built on.",
+         "Live sessions = real-time multi-user editing of one USD.",
+         "Connectors bridge DCC tools (Maya, Blender…) to Omniverse via USD."],
+  "9-1":["MDL = NVIDIA's physically based Material Definition Language.",
+         "MDL and MaterialX both aim for portable, renderer-agnostic materials.",
+         "The Omniverse RTX Renderer plugs into USD as a Hydra render delegate."],
+};
+
 const ALL_Q={};   // id "ui-li-qi" -> {ui,li,qi,q,unit,lesson}
 CURRICULUM.forEach((u,ui)=>u.lessons.forEach((l,li)=>l.questions.forEach((q,qi)=>{
   q._id=ui+"-"+li+"-"+qi;
@@ -999,6 +1149,9 @@ const defaultState = () => ({
   completed:{},        // "u-l" -> {best:0..1}
   mistakes:[],         // array of question ids still to review
   answered:0, correct:0, cleared:0,  // lifetime stats for profile page
+  exProgress:0,        // exercises completed toward next bonus heart (0..4)
+  notesSeen:{},        // "u-l" -> true once its notes have been shown
+  weeklyXp:0, weekKey:null,  // weekly league tracking
 });
 
 let accounts = loadAccounts();
@@ -1113,9 +1266,35 @@ async function ensureProfile(user){
 }
 async function pushProfile(){
   if(!cloud || !currentUser || !userHandle) return;
-  try{ await cloud.from("profiles").upsert({ id:currentUser, username:userHandle, display_name:userDisplay,
-    xp:S.xp, streak:S.streak, lessons:Object.keys(S.completed).length, updated_at:new Date().toISOString() }); }
-  catch(e){ console.warn("profile push failed:", e); }
+  const base={ id:currentUser, username:userHandle, display_name:userDisplay,
+    xp:S.xp, streak:S.streak, lessons:Object.keys(S.completed).length, updated_at:new Date().toISOString() };
+  const full={ ...base, weekly_xp:S.weeklyXp||0, week_start:S.weekKey||weekStartStr() };
+  try{
+    const {error}=await cloud.from("profiles").upsert(full);
+    if(error) throw error;                    // e.g. weekly columns not created yet
+  }catch(e){
+    try{ await cloud.from("profiles").upsert(base); }   // fall back so core stats still sync
+    catch(e2){ console.warn("profile push failed:", e2); }
+  }
+}
+async function loadLeague(){
+  const out={ top:[], myRank:null, me:null, error:null, week:weekStartStr() };
+  if(!cloud || !currentUser){ out.error="local"; return out; }
+  try{
+    const {data,error}=await cloud.from("profiles")
+      .select("id,username,display_name,weekly_xp,week_start,streak")
+      .eq("week_start", out.week).order("weekly_xp",{ascending:false}).limit(50);
+    if(error){ out.error=error.message; return out; }
+    out.top=(data||[]).filter(p=>(p.weekly_xp||0)>0);
+    out.me=out.top.find(p=>p.id===currentUser)||null;
+    if(!out.me && (S.weeklyXp||0)>0 && S.weekKey===out.week){
+      const {count}=await cloud.from("profiles").select("id",{count:"exact",head:true})
+        .eq("week_start",out.week).gt("weekly_xp", S.weeklyXp||0);
+      out.myRank=(count||0)+1;
+      out.me={ id:currentUser, username:userHandle, display_name:userDisplay, weekly_xp:S.weeklyXp, streak:S.streak };
+    }
+  }catch(e){ out.error=e.message; }
+  return out;
 }
 async function changeUsername(name){
   const h=sanitizeHandle(name);
@@ -1204,6 +1383,28 @@ function bumpStreak(){
   S.lastPlayDay=t; save();
 }
 
+/* Monday-based week key, e.g. "2026-06-29" */
+function weekStartStr(){
+  const d=new Date(); const off=(d.getDay()+6)%7; d.setDate(d.getDate()-off);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+/* add XP and roll into the weekly-league total (resets on a new week) */
+function addXp(n){
+  S.xp=(S.xp||0)+n;
+  const wk=weekStartStr();
+  if(S.weekKey!==wk){ S.weekKey=wk; S.weeklyXp=0; }
+  S.weeklyXp=(S.weeklyXp||0)+n;
+}
+/* every 5 completed exercises grants a bonus heart */
+function earnExerciseCredit(){
+  S.exProgress=(S.exProgress||0)+1;
+  if(S.exProgress>=5){
+    S.exProgress=0;
+    if(S.hearts<MAX_HEARTS){ S.hearts=Math.min(MAX_HEARTS,S.hearts+1); showToast("🎁 Bonus heart earned! ❤️"); }
+    else { showToast("🎁 5 exercises done — hearts already full!"); }
+  }
+}
+
 /* ============================================================
    DOM refs
    ============================================================ */
@@ -1256,7 +1457,11 @@ function renderHome(){
 
   // ---- Practice / Exercises ----
   const mCount=validMistakes().length;
-  html+=`<div class="section-label">Exercises</div><div class="practice-wrap">
+  const exLeft=5-((S.exProgress||0)%5);
+  html+=`<div class="section-label">Exercises</div>
+    <div class="heart-goal"><div class="hg-bar"><i style="width:${(S.exProgress||0)/5*100}%"></i></div>
+      <span>🎁 ${S.hearts>=MAX_HEARTS?'Hearts full':exLeft+' more exercise'+(exLeft===1?'':'s')+' → bonus ❤️'}</span></div>
+    <div class="practice-wrap">
     <div class="pcard mistakes">
       <div class="ptitle">🩹 Review Mistakes</div>
       <div class="pdesc">Re-attempt the questions you got wrong. Answer right to clear them.</div>
@@ -1317,6 +1522,7 @@ function hideAllScreens(){
   home.classList.add("hidden");
   el("social").classList.add("hidden");
   el("profile").classList.add("hidden");
+  el("study").classList.add("hidden");
   lessonEl.classList.remove("active");
   resultsEl.classList.remove("active");
 }
@@ -1326,6 +1532,43 @@ function showNav(active){
 }
 function hideNav(){ el("nav").classList.add("hidden"); }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+/* ---------- Study notes ---------- */
+function showNotes(ui,li,mode){
+  const key=ui+"-"+li, note=NOTES[key]||[], lesson=CURRICULUM[ui].lessons[li];
+  el("notesEmoji").textContent=lesson.icon||"📖";
+  el("notesTitle").textContent=lesson.name;
+  el("notesList").innerHTML=note.map(n=>`<li>${esc(n)}</li>`).join("");
+  const btn=el("notesBtn");
+  if(mode==="intro"){
+    btn.textContent="Start lesson →";
+    btn.onclick=()=>{ S.notesSeen=S.notesSeen||{}; S.notesSeen[key]=true; save(); hideNotes(); beginLesson(ui,li); };
+  } else {
+    btn.textContent="Got it 👍";
+    btn.onclick=()=>hideNotes();
+  }
+  el("notesModal").classList.add("show");
+}
+function hideNotes(){ el("notesModal").classList.remove("show"); }
+
+function renderStudy(){
+  refreshTop();
+  hideAllScreens(); el("study").classList.remove("hidden"); showNav("study");
+  let html=`<div class="section-label">📖 Study notes</div>
+    <div class="empty-card" style="text-align:left">Quick tips for every lesson. Read before you start, or revisit anytime.</div>`;
+  CURRICULUM.forEach((u,ui)=>{
+    html+=`<div class="section-label">${esc(u.title)}</div>`;
+    u.lessons.forEach((l,li)=>{
+      const key=ui+"-"+li; if(!NOTES[key]) return;
+      const seen=S.notesSeen&&S.notesSeen[key];
+      html+=`<button class="study-row" onclick="showNotes(${ui},${li},'review')">
+        <span class="sr-ico">${l.icon||"📖"}</span>
+        <span class="sr-name">${esc(l.name)}</span>
+        <span class="sr-tag">${seen?"✓ read":"notes"}</span></button>`;
+    });
+  });
+  el("study").innerHTML=html;
+}
 
 /* small color shader */
 function shade(hex,p){
@@ -1379,6 +1622,11 @@ function toggleSound(){
    ============================================================ */
 let L=null; // current lesson session
 function startLesson(ui,li){
+  const key=ui+"-"+li;
+  if(NOTES[key] && !(S.notesSeen&&S.notesSeen[key])){ showNotes(ui,li,"intro"); return; }
+  beginLesson(ui,li);
+}
+function beginLesson(ui,li){
   regenHearts();
   if(S.hearts<=0){ showToast("Out of hearts! They refill over time ❤️"); renderHome(); return; }
   const unit=CURRICULUM[ui], lesson=unit.lessons[li];
@@ -1442,8 +1690,19 @@ function renderQuestion(){
     </div>`;
   } else if(q.type==="type"){
     body+=`<input class="typed" id="typedIn" placeholder="Type your answer…" autocomplete="off" autocapitalize="off" spellcheck="false"/>`;
+  } else if(q.type==="pairs"){
+    L._matched=0; L._selBtns={L:null,R:null};
+    const left=shuffle(q.pairs.map((p,idx)=>({idx,txt:p[0]})));
+    const right=shuffle(q.pairs.map((p,idx)=>({idx,txt:p[1]})));
+    body+=`<div class="pairs"><div class="pcol">`+
+      left.map(o=>`<button class="pair" data-side="L" data-idx="${o.idx}" onclick="pairTap(this)">${esc(o.txt)}</button>`).join("")+
+      `</div><div class="pcol">`+
+      right.map(o=>`<button class="pair" data-side="R" data-idx="${o.idx}" onclick="pairTap(this)">${esc(o.txt)}</button>`).join("")+
+      `</div></div>`;
   }
   qbody.innerHTML=body;
+
+  if(q.type==="pairs"){ checkBtn.disabled=true; checkBtn.textContent="Match all the pairs"; }
 
   if(q.type==="type"){
     const inp=el("typedIn");
@@ -1464,8 +1723,38 @@ function selectChoice(pos){
 
 function onCheck(){
   const q=L.qs[L.i];
+  if(q.type==="pairs"){ if(L.answered) advance(); return; }
   if(!L.answered){ evaluate(q); }
   else { advance(); }
+}
+
+/* match-the-pairs interaction (Duolingo-style tap to match) */
+function pairTap(btn){
+  if(L.answered || btn.classList.contains("locked")) return;
+  const side=btn.dataset.side, sel=L._selBtns;
+  if(sel[side]===btn){ btn.classList.remove("sel"); sel[side]=null; return; }
+  if(sel[side]) sel[side].classList.remove("sel");
+  sel[side]=btn; btn.classList.add("sel");
+  if(sel.L && sel.R){
+    const a=sel.L, b=sel.R; sel.L=null; sel.R=null;
+    if(a.dataset.idx===b.dataset.idx){
+      a.classList.remove("sel"); b.classList.remove("sel");
+      a.classList.add("locked"); b.classList.add("locked");
+      L._matched++;
+      const c=audioCtx(); if(soundOn&&c) tone(c.currentTime,880,0.08,"triangle",0.16);
+      if(L._matched>=L.qs[L.i].pairs.length) completePairs();
+    } else {
+      a.classList.add("bad"); b.classList.add("bad");
+      setTimeout(()=>{ a.classList.remove("sel","bad"); b.classList.remove("sel","bad"); },450);
+    }
+  }
+}
+function completePairs(){
+  const q=L.qs[L.i];
+  L.answered=true; L.correct++;
+  S.answered=(S.answered||0)+1; S.correct=(S.correct||0)+1;
+  save(); refreshTop();
+  showFeedback(true,q);
 }
 
 function evaluate(q){
@@ -1548,7 +1837,7 @@ function endLesson(passed){
   if(L.practice){
     bumpStreak();
     gainedXp=5+L.correct*2;
-    S.xp+=gainedXp; save(); refreshTop();
+    addXp(gainedXp); earnExerciseCredit(); save(); refreshTop();
     resultsEl.classList.add("active");
     playComplete();
     const remaining=validMistakes().length;
@@ -1572,7 +1861,7 @@ function endLesson(passed){
     bumpStreak();
     const base=10, bonus=L.wrong===0?5:0;
     gainedXp=base+bonus+L.correct*2;
-    S.xp+=gainedXp;
+    addXp(gainedXp); earnExerciseCredit();
     const prevBest=(S.completed[L.key]&&S.completed[L.key].best)||0;
     S.completed[L.key]={best:Math.max(prevBest,acc)};
     save();
@@ -1758,6 +2047,7 @@ async function renderSocial(tab){
   hideAllScreens(); el("social").classList.remove("hidden"); showNav("social");
   const c=el("social");
   const tabs=`<div class="lbtabs">
+    <button class="lbtab ${socialTab==='league'?'active':''}" onclick="renderSocial('league')">🏅 League</button>
     <button class="lbtab ${socialTab==='friends'?'active':''}" onclick="renderSocial('friends')">👥 Friends</button>
     <button class="lbtab ${socialTab==='global'?'active':''}" onclick="renderSocial('global')">🌍 Global</button>
   </div>`;
@@ -1766,6 +2056,38 @@ async function renderSocial(tab){
     return;
   }
   c.innerHTML=tabs+`<div class="empty-card">Loading…</div>`;
+
+  /* ---- WEEKLY LEAGUE ---- */
+  if(socialTab==="league"){
+    const lg=await loadLeague();
+    if(lg.error && lg.error!=="local"){
+      c.innerHTML=tabs+`<div class="empty-card">Couldn't load the league.<br><small>${esc(lg.error)}</small><br><br>
+        The league needs extra columns — run <code>schema-v3.sql</code> in Supabase (see CLOUD-SETUP).</div>`;
+      return;
+    }
+    let lh=tabs+`<div class="section-label">🏅 Weekly league · resets Monday</div>`;
+    if(!lg.top.length){
+      lh+=`<div class="empty-card">No XP earned this week yet. Complete a lesson to join the league! 🚀</div>`;
+    } else {
+      lh+=`<div class="board">`;
+      lg.top.forEach((p,i)=>{
+        const me=p.id===currentUser;
+        const medal=["🥇","🥈","🥉"][i] || `<span class="rank">${i+1}</span>`;
+        lh+=`<div class="board-row${me?' me':''}"><div class="medal">${medal}</div>
+          <div class="who"><b>${esc(p.display_name||p.username)}${me?' (you)':''}</b><span>@${esc(p.username||'')} · 🔥 ${p.streak||0}</span></div>
+          <div class="bxp">⚡ ${p.weekly_xp||0}</div></div>`;
+      });
+      lh+=`</div>`;
+      if(lg.myRank){
+        lh+=`<div class="section-label">Your rank</div><div class="board">
+          <div class="board-row me"><div class="medal"><span class="rank">${lg.myRank}</span></div>
+          <div class="who"><b>${esc(lg.me.display_name||lg.me.username)} (you)</b><span>@${esc(lg.me.username||'')}</span></div>
+          <div class="bxp">⚡ ${lg.me.weekly_xp||0}</div></div></div>`;
+      }
+    }
+    c.innerHTML=lh;
+    return;
+  }
 
   /* ---- GLOBAL ---- */
   if(socialTab==="global"){
@@ -1902,6 +2224,7 @@ window.renderHome=renderHome; window.renderSocial=renderSocial; window.renderPro
 window.hardReset=hardReset; window.exportProgress=exportProgress;
 window.addFriend=addFriend; window.acceptReq=acceptReq; window.declineReq=declineReq; window.removeFriend=removeFriend;
 window.saveUsername=saveUsername; window.logoutConfirm=logoutConfirm; window.toggleSound=toggleSound;
+window.renderStudy=renderStudy; window.showNotes=showNotes; window.pairTap=pairTap;
 
 /* boot — resume session if logged in, else show login */
 async function boot(){
