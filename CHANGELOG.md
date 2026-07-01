@@ -2,6 +2,23 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.3.0] — 2026-07-01
+
+### Added
+- **Much more content** — now **31 lessons across 10 units with 310 questions** (up from ~95).
+  Each unit gained a new lesson and every lesson now has **10 questions**.
+- **Harder, exam-style questions** aligned to the NVIDIA NCP-OUSD / OpenUSD Development
+  scope (API usage, composition & value-resolution semantics, production workflows).
+- **65 code questions** — read a real `.usda` or USD Python snippet and choose the correct
+  answer / output.
+- Study notes authored for every lesson.
+
+### Changed
+- Lessons now present up to 10 questions (shuffled each attempt) instead of a subset of 6.
+
+### Added (backend)
+- `schema-v4.sql` — index on `profiles(xp)` to keep the Global leaderboard fast at scale.
+
 ## [1.2.0] — 2026-07-01
 
 ### Added

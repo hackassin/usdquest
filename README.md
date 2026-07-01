@@ -13,7 +13,7 @@ Open it on desktop or phone, create an account, and start learning. On mobile yo
 
 ## ✨ Features
 
-- **10 units · 21 lessons · 88 questions** spanning OpenUSD foundations → Omniverse production
+- **10 units · 31 lessons · 310 questions** spanning OpenUSD foundations → Omniverse production
   (stages & layers, prims, composition/LIVRPS, schemas, Hydra, lighting, physics, animation, MDL…).
 - **Gamified learning** — XP, daily streaks, 5 hearts (regenerating), per-lesson results, and a
   👑 boss lesson. Questions and answer choices **shuffle every attempt** so repeats stay fresh.
