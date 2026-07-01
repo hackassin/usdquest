@@ -5492,7 +5492,7 @@ function showNotes(ui,li,mode){
   const key=ui+"-"+li, lesson=CURRICULUM[ui].lessons[li], note=lesson.notes||[];
   el("notesEmoji").textContent=lesson.icon||"📖";
   el("notesTitle").textContent=lesson.name;
-  el("notesList").innerHTML=note.map(n=>`<li>${esc(n)}</li>`).join("");
+  el("notesList").innerHTML=note.map(n=>`<li>${n}</li>`).join("");
   const btn=el("notesBtn");
   if(mode==="intro"){
     btn.textContent="Start lesson →";
