@@ -2,6 +2,21 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.2.0] — 2026-07-01
+
+### Added
+- **Bonus hearts** — earn a heart for every 5 exercises completed, with a progress
+  indicator on the home Exercises section.
+- **Study notes** — short tips pop up once before a lesson's first attempt, and a new
+  **Study** tab (bottom nav) lets you revisit notes for all 21 lessons anytime.
+- **New question types** — Duolingo-style **match-the-pairs**, and **code-reference**
+  questions using real `.usda` snippets.
+- **Weekly league** — a 🏅 League tab ranking everyone by XP earned this week
+  (resets Monday), alongside the Friends and Global boards.
+
+### Notes
+- Requires `schema-v3.sql` (adds `weekly_xp` / `week_start` to `profiles`) to enable the league.
+
 ## [1.1.0] — 2026-07-01
 
 ### Added
