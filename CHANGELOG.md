@@ -2,6 +2,19 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.4.0] — 2026-07-02
+
+### Added
+- **Timed checkpoint exams** between unit blocks — a shuffled mix of concepts from the
+  units you've completed (cumulative), with generous XP rewards scaled by your score.
+- **1-hour Final Exam** covering all 10 units, with a score, medal (Gold/Silver/Bronze),
+  and a **certificate** (70%+ to earn it).
+- Live countdown timer during exams (turns red under 30s); exams cost no hearts; best
+  score per exam is saved and shown on its card.
+
+### Fixed
+- Lesson study notes now render `<b>`/`<code>` formatting instead of literal tags.
+
 ## [1.3.0] — 2026-07-01
 
 ### Added
