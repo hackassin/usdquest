@@ -308,6 +308,38 @@
   .acct-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:8px}
   .reset.danger{color:var(--red)}
 
+  /* ---------- Readiness report ---------- */
+  .report-btn{width:100%;padding:14px;margin:6px 0 4px;border-radius:14px;font-weight:800;font-size:14px;
+    letter-spacing:.3px;color:#04212f;background:var(--blue);box-shadow:0 4px 0 #1187c4}
+  .report-btn:active{transform:translateY(2px)}
+  .report-head{text-align:center;margin:6px 0 8px}
+  .report-back{background:none;color:var(--muted);font-size:13px;font-weight:700;float:left;padding:4px 0}
+  .report-head h2{margin:0;font-size:22px;clear:both;padding-top:6px}
+  .report-head p{margin:3px 0 14px;color:var(--muted);font-size:13px}
+  .readiness-ring{--pct:0;width:150px;height:150px;border-radius:50%;margin:6px auto 8px;display:flex;
+    align-items:center;justify-content:center;
+    background:conic-gradient(var(--green) calc(var(--pct)*1%), var(--panel-2) 0);}
+  .readiness-ring span{width:116px;height:116px;border-radius:50%;background:var(--ink);display:flex;
+    align-items:center;justify-content:center;font-size:34px;font-weight:900;color:var(--green-l)}
+  .verdict{font-size:18px;font-weight:800}
+  .dom-row{margin-bottom:12px}
+  .dom-top{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;margin-bottom:5px}
+  .dom-name{font-weight:700}
+  .dom-meta{font-size:13px}
+  .dom-wt{color:var(--muted);font-size:11px;background:var(--panel-2);border:1px solid var(--line);
+    padding:2px 7px;border-radius:999px;margin-right:6px}
+  .dom-bar{height:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .dom-bar i{display:block;height:100%;border-radius:999px;transition:width .4s}
+  .dom-band{font-size:11px;color:var(--muted);margin-top:3px}
+  .report-note{color:var(--muted);font-size:11px;line-height:1.5;margin:16px 0 6px}
+  @media print{
+    .topbar,.nav,.report-btn,.report-back{display:none!important}
+    body{background:#fff;color:#000}
+    .readiness-ring span{background:#fff;color:#111}
+    .dom-bar,.dom-wt{border-color:#ccc}
+    .report-note,.dom-band,.report-head p{color:#555}
+  }
+
   /* ---------- Section banners ---------- */
   .path-section{margin:30px 0 6px;padding:16px 18px;border-radius:var(--radius);text-align:center;
     background:linear-gradient(135deg,#0f1c22,#14272f);border:1px solid var(--line);
@@ -445,6 +477,8 @@
 
   <!-- PROFILE / STATS -->
   <div class="scroll hidden" id="profile"></div>
+  <!-- EXAM READINESS REPORT -->
+  <div class="scroll hidden" id="report"></div>
 
   <!-- LESSON -->
   <div class="lesson" id="lesson">
@@ -7362,6 +7396,7 @@ function hideAllScreens(){
   el("social").classList.add("hidden");
   el("profile").classList.add("hidden");
   el("study").classList.add("hidden");
+  el("report").classList.add("hidden");
   lessonEl.classList.remove("active");
   resultsEl.classList.remove("active");
 }
@@ -8099,6 +8134,73 @@ async function removeFriend(id){ if(confirm("Remove this connection?")){ await u
 /* ============================================================
    Profile / Stats screen
    ============================================================ */
+/* ============================================================
+   Exam Readiness Report — maps progress to the NCP-OUSD domains
+   ============================================================ */
+// unit indices (0-based) that contribute to each official exam domain (overlap OK)
+const DOMAINS = [
+  {key:"Composition",                weight:23, units:[1,3]},     // Stages & Layers, Composition Arcs
+  {key:"Data Exchange",              weight:15, units:[11]},      // Data Exchange
+  {key:"Pipeline Development",       weight:14, units:[9,12]},    // Omniverse & Production, Pipeline Development
+  {key:"Data Modeling",              weight:13, units:[2,4,8]},   // Prims, Schemas, Animation
+  {key:"Debugging & Troubleshooting",weight:11, units:[10]},      // Debugging
+  {key:"Content Aggregation",        weight:10, units:[3,4]},     // Composition Arcs, Schemas (instancing)
+  {key:"Visualization",              weight:8,  units:[4,5,6]},   // Schemas (UsdGeom), Rendering, Lighting
+  {key:"Customizing USD",            weight:6,  units:[13]},      // Customizing USD
+];
+function lessonScore(ui,li){ const c=S.completed[ui+"-"+li]; return c ? (c.best||0) : 0; } // 0..100
+function domainReadiness(d){
+  let sum=0,n=0;
+  d.units.forEach(ui=>CURRICULUM[ui].lessons.forEach((l,li)=>{ sum+=lessonScore(ui,li); n++; }));
+  return n ? Math.round(sum/n) : 0;
+}
+function renderReport(){
+  refreshTop();
+  hideAllScreens(); el("report").classList.remove("hidden"); showNav("profile");
+  const rows=DOMAINS.map(d=>({...d, r:domainReadiness(d)}));
+  const totW=rows.reduce((a,d)=>a+d.weight,0);
+  const overall=Math.round(rows.reduce((a,d)=>a+d.r*d.weight,0)/totW);
+  const verdict = overall>=85?{t:"Exam ready 🎓",c:"var(--green-l)"} : overall>=70?{t:"Almost there 💪",c:"var(--gold)"} : overall>=45?{t:"Keep studying 📚",c:"var(--gold)"} : {t:"Just getting started 🌱",c:"var(--muted)"};
+  const band=r=>r>=80?"Strong":r>=50?"OK":r>0?"Weak":"Not started";
+  const bandColor=r=>r>=80?"var(--green)":r>=50?"var(--gold)":r>0?"var(--red)":"var(--line)";
+  // focus = highest-impact gaps: (100-r) * weight
+  const focus=[...rows].filter(d=>d.r<80).sort((a,b)=>(100-b.r)*b.weight-(100-a.r)*a.weight).slice(0,3);
+
+  let html=`<div class="report-head">
+      <button class="report-back" onclick="renderProfile()">← Profile</button>
+      <h2>📊 Exam Readiness</h2>
+      <p>NVIDIA NCP-OpenUSD Development · ${esc(userDisplay||'Learner')}</p>
+      <div class="readiness-ring" style="--pct:${overall}"><span>${overall}%</span></div>
+      <div class="verdict" style="color:${verdict.c}">${verdict.t}</div>
+    </div>`;
+
+  html+=`<div class="section-label">Readiness by exam domain</div>`;
+  [...rows].sort((a,b)=>b.weight-a.weight).forEach(d=>{
+    html+=`<div class="dom-row">
+        <div class="dom-top"><span class="dom-name">${esc(d.key)}</span>
+          <span class="dom-meta"><span class="dom-wt">${d.weight}%</span> <b style="color:${bandColor(d.r)}">${d.r}%</b></span></div>
+        <div class="dom-bar"><i style="width:${d.r}%;background:${bandColor(d.r)}"></i></div>
+        <div class="dom-band">${band(d.r)}</div>
+      </div>`;
+  });
+
+  if(focus.length){
+    html+=`<div class="section-label">Focus next (highest exam impact)</div>
+      <div class="empty-card" style="text-align:left">`+
+      focus.map(d=>`▸ <b>${esc(d.key)}</b> — ${d.weight}% of the exam, you're at ${d.r}%`).join("<br>")+
+      `</div>`;
+  }
+
+  // exam scores
+  const examLine=EXAMS.map(ex=>{const b=S.examBest&&S.examBest[ex.id]; return b!=null?`${ex.icon} ${esc(ex.title)}: <b>${b}%</b>`:null;}).filter(Boolean);
+  html+=`<div class="section-label">Exam scores</div>
+    <div class="empty-card" style="text-align:left">${examLine.length?examLine.join("<br>"):"No exams taken yet — try a checkpoint to gauge readiness."}</div>`;
+
+  html+=`<p class="report-note">Readiness = coverage × best score across each domain's lessons, weighted by the official exam blueprint. Units 1 (Foundations) &amp; 8 (Physics) are supplementary and not weighted. Approximate guide, not affiliated with NVIDIA.</p>`;
+  html+=`<button class="report-btn" onclick="window.print()">🖨 Print / Save as PDF</button>`;
+  el("report").innerHTML=html;
+}
+
 function renderProfile(){
   refreshTop();
   hideAllScreens(); el("profile").classList.remove("hidden"); showNav("profile");
@@ -8119,6 +8221,8 @@ function renderProfile(){
       ${tile('🩹',validMistakes().length,'To review')}
       ${tile('💪',S.cleared||0,'Cleared')}
     </div>`;
+
+  html+=`<button class="report-btn" onclick="renderReport()">📊 Exam Readiness Report →</button>`;
 
   html+=`<div class="section-label">Progress by unit</div>`;
   CURRICULUM.forEach((u,ui)=>{
@@ -8157,7 +8261,7 @@ window.renderHome=renderHome; window.renderSocial=renderSocial; window.renderPro
 window.hardReset=hardReset; window.exportProgress=exportProgress;
 window.addFriend=addFriend; window.acceptReq=acceptReq; window.declineReq=declineReq; window.removeFriend=removeFriend;
 window.saveUsername=saveUsername; window.logoutConfirm=logoutConfirm; window.toggleSound=toggleSound;
-window.renderStudy=renderStudy; window.showNotes=showNotes; window.pairTap=pairTap; window.startExam=startExam;
+window.renderStudy=renderStudy; window.showNotes=showNotes; window.pairTap=pairTap; window.startExam=startExam; window.renderReport=renderReport;
 
 /* boot — resume session if logged in, else show login */
 async function boot(){

@@ -2,6 +2,14 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.6.0] — 2026-07-02
+
+### Added
+- **Exam Readiness Report** (Profile → 📊 Exam Readiness) — maps your progress onto the
+  8 official NCP-OUSD exam domains, weighted by the blueprint. Shows an overall readiness
+  ring, per-domain bars (Strong/OK/Weak), a "focus next" list ranked by exam impact, your
+  best exam scores, and a **Print / Save-as-PDF** view.
+
 ## [1.5.0] — 2026-07-02
 
 ### Added
