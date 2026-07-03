@@ -308,6 +308,15 @@
   .acct-actions{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:8px}
   .reset.danger{color:var(--red)}
 
+  /* ---------- Section banners ---------- */
+  .path-section{margin:30px 0 6px;padding:16px 18px;border-radius:var(--radius);text-align:center;
+    background:linear-gradient(135deg,#0f1c22,#14272f);border:1px solid var(--line);
+    border-top:3px solid var(--green-l)}
+  .path-section h2{margin:0;font-size:18px;color:var(--green-l);letter-spacing:.3px}
+  .path-section p{margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .path-section.study{margin:18px 0 4px;padding:12px 16px}
+  .path-section.study h2{font-size:15px}
+
   /* ---------- Exams ---------- */
   .exam-timer{font-weight:800;font-size:15px;color:var(--gold);white-space:nowrap;
     background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 11px}
@@ -501,6 +510,8 @@ const CURRICULUM = [
     "title": "Unit 1 · OpenUSD Foundations",
     "subtitle": "What USD is and why it exists",
     "color": "#76b900",
+    "section": 1,
+    "weight": 1,
     "lessons": [
       {
         "name": "What is OpenUSD?",
@@ -946,6 +957,8 @@ const CURRICULUM = [
     "title": "Unit 2 · Stages & Layers",
     "subtitle": "The runtime scenegraph and its files",
     "color": "#1cb0f6",
+    "section": 1,
+    "weight": 3,
     "lessons": [
       {
         "name": "The Stage",
@@ -1388,6 +1401,8 @@ const CURRICULUM = [
     "title": "Unit 3 · Prims & Properties",
     "subtitle": "The building blocks of a scene",
     "color": "#ffc800",
+    "section": 1,
+    "weight": 3,
     "lessons": [
       {
         "name": "Prims & Paths",
@@ -1834,6 +1849,8 @@ const CURRICULUM = [
     "title": "Unit 4 · Composition Arcs",
     "subtitle": "LIVRPS — how USD assembles scenes",
     "color": "#ff7eb6",
+    "section": 1,
+    "weight": 4,
     "lessons": [
       {
         "name": "References & Payloads",
@@ -2410,6 +2427,8 @@ const CURRICULUM = [
     "title": "Unit 5 · Schemas",
     "subtitle": "Giving prims meaning and structure",
     "color": "#a06bff",
+    "section": 1,
+    "weight": 2,
     "lessons": [
       {
         "name": "IsA vs API Schemas",
@@ -2866,6 +2885,8 @@ const CURRICULUM = [
     "title": "Unit 6 · Rendering & Workflows",
     "subtitle": "Hydra, materials, and pipelines",
     "color": "#ff9d3c",
+    "section": 1,
+    "weight": 2,
     "lessons": [
       {
         "name": "Hydra & Imaging",
@@ -3309,6 +3330,8 @@ const CURRICULUM = [
     "title": "Unit 7 · Lighting & Cameras",
     "subtitle": "UsdLux lights and UsdGeom cameras",
     "color": "#ffb300",
+    "section": 1,
+    "weight": 1,
     "lessons": [
       {
         "name": "Lights (UsdLux)",
@@ -3769,6 +3792,8 @@ const CURRICULUM = [
     "title": "Unit 8 · Physics & Simulation",
     "subtitle": "UsdPhysics and rigid-body dynamics",
     "color": "#00c2a8",
+    "section": 1,
+    "weight": 1,
     "lessons": [
       {
         "name": "Rigid Bodies",
@@ -4213,6 +4238,8 @@ const CURRICULUM = [
     "title": "Unit 9 · Animation & Skinning",
     "subtitle": "Time samples and UsdSkel",
     "color": "#b06bff",
+    "section": 1,
+    "weight": 1,
     "lessons": [
       {
         "name": "Time & Animation",
@@ -4651,6 +4678,8 @@ const CURRICULUM = [
     "title": "Unit 10 · Omniverse & Production",
     "subtitle": "NVIDIA's OpenUSD platform in practice",
     "color": "#76b900",
+    "section": 1,
+    "weight": 1,
     "lessons": [
       {
         "name": "Omniverse Platform",
@@ -5092,6 +5121,1796 @@ const CURRICULUM = [
         ]
       }
     ]
+  },
+  {
+    "title": "Unit 11 · Debugging & Troubleshooting",
+    "subtitle": "Inspect, fix, and optimize stages",
+    "color": "#ef5350",
+    "section": 2,
+    "weight": 3,
+    "lessons": [
+      {
+        "name": "Inspecting Stages",
+        "icon": "🔍",
+        "notes": [
+          "<code>prim.GetPrimStack()</code> returns the ordered list of <code>Sdf.PrimSpec</code>s (one per layer) that contribute opinions to a prim.",
+          "<code>attribute.GetPropertyStack(time)</code> shows which layers hold opinions for a property at a given time (use <code>Usd.TimeCode.Default()</code> for defaults).",
+          "<code>stage.ExportToString()</code> and <code>stage.Flatten()</code> collapse composition into a single composed layer so you can read the resolved result.",
+          "<code>stage.Traverse()</code> yields prims in the composed scenegraph; it skips inactive/unloaded subtrees unless you use a predicate like <code>Usd.TraverseInstanceProxies</code>.",
+          "usdview is the primary visual inspector; its interpreter, tree view, and layer stack view let you inspect composition interactively."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "PrimStack purpose",
+            "q": "What does <code>prim.GetPrimStack()</code> return?",
+            "choices": [
+              "The child prims of the prim in the composed scenegraph",
+              "The ordered list of Sdf.PrimSpecs from each layer contributing opinions to the prim",
+              "The flattened composed value of every attribute on the prim",
+              "The list of prototypes if the prim is instanced"
+            ],
+            "answer": 1,
+            "explain": "<code>GetPrimStack()</code> returns the ordered <code>Sdf.PrimSpec</code>s that contribute opinions to the prim, which is essential for seeing <b>which layers</b> define it."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "stage = Usd.Stage.Open(\"scene.usda\")\nprim = stage.GetPrimAtPath(\"/World/Sphere\")\nfor spec in prim.GetPrimStack():\n    print(spec.layer.identifier)",
+            "code_lang": "python",
+            "q": "What does this snippet print?",
+            "choices": [
+              "The identifier of every layer that has an opinion about /World/Sphere",
+              "The values of all attributes on the sphere",
+              "The list of prototype paths",
+              "Only the root layer identifier, always"
+            ],
+            "answer": 0,
+            "explain": "Iterating <code>GetPrimStack()</code> and reading each <code>spec.layer.identifier</code> lists the identifiers of all layers contributing opinions to that prim."
+          },
+          {
+            "type": "mc",
+            "kind": "PropertyStack",
+            "q": "Why would you call <code>attribute.GetPropertyStack(Usd.TimeCode.Default())</code> when debugging?",
+            "choices": [
+              "To animate the attribute over time",
+              "To see which layers hold opinions for that property and in what strength order",
+              "To delete weaker opinions automatically",
+              "To convert the attribute to a relationship"
+            ],
+            "answer": 1,
+            "explain": "<code>GetPropertyStack(time)</code> returns the ordered property specs contributing at that time, revealing which layer's opinion wins and which are overridden."
+          },
+          {
+            "type": "mc",
+            "kind": "Flatten vs Export",
+            "q": "What is the effect of <code>stage.Flatten()</code>?",
+            "choices": [
+              "It permanently edits the root layer on disk",
+              "It returns a single new Sdf.Layer with all composition arcs resolved into a composed result",
+              "It removes all references but keeps sublayers",
+              "It only merges session layers"
+            ],
+            "answer": 1,
+            "explain": "<code>Flatten()</code> composes the entire stage into one new <code>Sdf.Layer</code> in memory, letting you inspect the fully resolved scene without composition arcs."
+          },
+          {
+            "type": "mc",
+            "kind": "Traverse behavior",
+            "q": "By default, which prims does <code>stage.Traverse()</code> visit?",
+            "choices": [
+              "Every prim spec in every layer, even overridden ones",
+              "Active, defined, loaded, and non-abstract prims in the composed scenegraph",
+              "Only prims in the root layer",
+              "Only prims that have authored attributes"
+            ],
+            "answer": 1,
+            "explain": "The default traversal predicate visits prims that are active, defined, loaded, and concrete (not abstract), skipping inactive or unloaded subtrees."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "stage = Usd.Stage.Open(\"scene.usd\")\nprint(stage.ExportToString())",
+            "code_lang": "python",
+            "q": "What is printed by <code>ExportToString()</code> here?",
+            "choices": [
+              "A binary crate dump of the root layer",
+              "The usda (text) serialization of the flattened, composed stage",
+              "Only the names of the sublayers",
+              "A JSON summary of prim counts"
+            ],
+            "answer": 1,
+            "explain": "<code>ExportToString()</code> flattens the stage and returns its <b>usda text</b> serialization, which is handy for reading the composed result even when source layers are binary crate."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "usdview provides an interactive Python interpreter that can access the currently open stage via a <code>usdviewApi</code> object.",
+            "answer": true,
+            "explain": "usdview's interpreter exposes <code>usdviewApi</code>, giving programmatic access to the stage, selection, and viewport for interactive inspection."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "The Sdf class representing a single layer file (e.g. a .usda or .usdc) that you can open and inspect directly is <code>Sdf.____</code>.",
+            "sub": "One word.",
+            "answer": [
+              "Layer",
+              "layer"
+            ],
+            "explain": "<code>Sdf.Layer</code> represents an individual layer; you can open it with <code>Sdf.Layer.FindOrOpen()</code> and inspect its prim specs directly, bypassing composition."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match the inspection API to what it reveals.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "GetPrimStack()",
+                "Layers contributing opinions to a prim"
+              ],
+              [
+                "GetPropertyStack(time)",
+                "Layers contributing an attribute opinion at a time"
+              ],
+              [
+                "Flatten()",
+                "A single composed Sdf.Layer of the whole stage"
+              ],
+              [
+                "Traverse()",
+                "Iterates prims of the composed scenegraph"
+              ]
+            ],
+            "explain": "Each API targets a different granularity: prim-level opinions, property-level opinions, whole-stage composition, and scenegraph iteration."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "layer = Sdf.Layer.FindOrOpen(\"props.usda\")\nprint(layer.GetPrimAtPath(\"/World/Chair\"))",
+            "code_lang": "python",
+            "q": "How does inspecting the layer this way differ from <code>stage.GetPrimAtPath</code>?",
+            "choices": [
+              "It returns the composed prim across all layers",
+              "It returns only the PrimSpec authored in that single layer, with no composition",
+              "It fails because layers have no prims",
+              "It loads all payloads first"
+            ],
+            "answer": 1,
+            "explain": "<code>Sdf.Layer.GetPrimAtPath()</code> returns the raw <code>PrimSpec</code> in that one layer only, showing exactly what that file authored without any composition."
+          }
+        ]
+      },
+      {
+        "name": "Composition Debugging",
+        "icon": "🧩",
+        "notes": [
+          "LIVRPS is the arc-strength order: <b>L</b>ocal, <b>I</b>nherits, <b>V</b>ariantSets, <b>R</b>eferences, <b>P</b>ayloads, <b>S</b>pecializes.",
+          "<code>prim.ComputeExpandedPrimIndex().DumpToString()</code> prints the full PcpPrimIndex graph, showing every node and why opinions rank as they do.",
+          "<code>Usd.PrimCompositionQuery</code> enumerates the composition arcs affecting a prim and lets you filter by arc type.",
+          "List-editing ops (prepend/append/delete/reorder) can silently drop or reorder references if you use the wrong operator; watch prepend vs append strength.",
+          "<code>TF_DEBUG</code> env vars like <code>USD_CHANGES</code> and <code>PCP_*</code> emit diagnostics; <code>usdchecker</code> validates assets against the USD spec and best practices."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "LIVRPS order",
+            "q": "In USD's LIVRPS strength ordering, which arc type is strongest?",
+            "choices": [
+              "Payloads",
+              "Local (direct) opinions",
+              "Specializes",
+              "References"
+            ],
+            "answer": 1,
+            "explain": "LIVRPS orders strength as Local, Inherits, VariantSets, References, Payloads, Specializes; <b>Local</b> opinions are the strongest and Specializes the weakest."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "prim = stage.GetPrimAtPath(\"/World/Robot\")\npi = prim.ComputeExpandedPrimIndex()\nprint(pi.DumpToString())",
+            "code_lang": "python",
+            "q": "What is the primary use of this output?",
+            "choices": [
+              "It renders the prim to an image",
+              "It prints the PcpPrimIndex graph of nodes/arcs to explain how opinions compose",
+              "It lists only the prim's children",
+              "It exports the prim as a new layer"
+            ],
+            "answer": 1,
+            "explain": "<code>DumpToString()</code> on the expanded prim index prints the full Pcp node graph, the definitive tool for understanding <b>why</b> a value resolves the way it does."
+          },
+          {
+            "type": "mc",
+            "kind": "PrimCompositionQuery",
+            "q": "What does <code>Usd.PrimCompositionQuery</code> let you inspect?",
+            "choices": [
+              "The GPU memory used by a prim",
+              "The set of composition arcs (references, payloads, inherits, etc.) affecting a prim",
+              "The animation curves on an attribute",
+              "The material bound to a prim"
+            ],
+            "answer": 1,
+            "explain": "<code>Usd.PrimCompositionQuery</code> enumerates the composition arcs introducing opinions to a prim, with filters to narrow by arc type, source, or whether it introduces specs."
+          },
+          {
+            "type": "mc",
+            "kind": "List editing",
+            "q": "A reference added with <code>prepend</code> versus <code>append</code> differs how?",
+            "choices": [
+              "prepend makes it weaker than existing references",
+              "prepend makes it stronger (earlier in the list) than existing references",
+              "They are identical operations",
+              "append deletes prior references"
+            ],
+            "answer": 1,
+            "explain": "In list editing, <code>prepend</code> puts an item earlier in the list, making it <b>stronger</b>, while <code>append</code> places it later (weaker); mixing them up is a common cause of wrong value resolution."
+          },
+          {
+            "type": "mc",
+            "kind": "Broken reference",
+            "q": "What happens on a stage when a prim references a layer file that cannot be found?",
+            "choices": [
+              "The stage fails to open entirely",
+              "A composition error is reported and the prim simply lacks the referenced opinions",
+              "USD silently creates the missing file",
+              "The reference is converted to a payload"
+            ],
+            "answer": 1,
+            "explain": "A missing reference/payload target produces a composition error (visible in usdview and TF_DEBUG output); the stage still opens but the prim gets no opinions from the broken arc."
+          },
+          {
+            "type": "mc",
+            "kind": "TF_DEBUG",
+            "q": "Setting the <code>TF_DEBUG</code> environment variable to <code>USD_CHANGES</code> does what?",
+            "choices": [
+              "Disables all change processing for speed",
+              "Emits diagnostic messages about USD change notifications/recomposition",
+              "Locks all layers as read-only",
+              "Forces every layer to save on each edit"
+            ],
+            "answer": 1,
+            "explain": "<code>TF_DEBUG=USD_CHANGES</code> turns on tracing of change/notification processing, helping diagnose unexpected recomposition; <code>PCP_*</code> flags similarly trace composition."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "<code>usdchecker</code> can validate a USD asset for spec compliance and common best-practice issues, and can also verify a .usdz package.",
+            "answer": true,
+            "explain": "<code>usdchecker</code> runs a suite of validation rules for correctness and best practices and supports checking <code>.usdz</code> packages for compliance."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "The weakest composition arc in LIVRPS, used to broadcast fallback opinions that any stronger arc can override, is called ____.",
+            "sub": "One word.",
+            "answer": [
+              "specializes",
+              "Specializes"
+            ],
+            "explain": "<b>Specializes</b> is the weakest arc; it is ideal for broadcasting base/fallback opinions that local, reference, or variant opinions can override."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each debugging tool to its role.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "ComputeExpandedPrimIndex",
+                "Full Pcp node graph for a prim"
+              ],
+              [
+                "PrimCompositionQuery",
+                "Enumerate/filter composition arcs"
+              ],
+              [
+                "TF_DEBUG=PCP_*",
+                "Trace composition internals"
+              ],
+              [
+                "usdchecker",
+                "Validate asset spec compliance"
+              ]
+            ],
+            "explain": "These are the core composition-debugging tools: index dumping, arc enumeration, runtime tracing, and asset validation."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "query = Usd.PrimCompositionQuery(prim)\nfor arc in query.GetCompositionArcs():\n    print(arc.GetArcType(), arc.GetTargetLayer().identifier)",
+            "code_lang": "python",
+            "q": "What information does this loop print for the prim?",
+            "choices": [
+              "Each composition arc's type and the layer it targets",
+              "The world-space bounding box",
+              "Only variant selections",
+              "The prim's attribute count"
+            ],
+            "answer": 0,
+            "explain": "Iterating <code>GetCompositionArcs()</code> exposes each arc's type (reference, payload, inherit, etc.) and its target layer, clarifying where opinions come from."
+          }
+        ]
+      },
+      {
+        "name": "Performance & Optimization",
+        "icon": "🚀",
+        "notes": [
+          "Scenegraph instancing (<code>instanceable = true</code> on prims sharing composition) collapses duplicates into shared prototypes, cutting memory and speeding traversal.",
+          "Payloads defer heavy data; use <code>stage.Load()/Unload()</code> or open with <code>Usd.Stage.LoadNone</code> to control what is populated.",
+          "<code>UsdStagePopulationMask</code> opens only a subset of the scenegraph, avoiding the cost of composing prims you don't need.",
+          "Draw modes (bounding-box or texture cards) let large asset subtrees render cheaply without loading full geometry.",
+          "Prefer binary crate (<code>.usdc</code>) over ASCII (<code>.usda</code>) for large data, and use prim deactivation to prune subtrees from composition entirely."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Instancing benefit",
+            "q": "What is the main benefit of marking prims <code>instanceable = true</code> when they share the same composition?",
+            "choices": [
+              "It makes them editable independently at higher cost",
+              "It shares a single prototype in memory, reducing footprint and speeding traversal",
+              "It forces them to load all payloads immediately",
+              "It disables their materials"
+            ],
+            "answer": 1,
+            "explain": "Scenegraph instancing points identical instances at one shared <b>prototype</b>, dramatically reducing memory and improving traversal/composition performance."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "stage = Usd.Stage.Open(\"city.usd\", load=Usd.Stage.InitialLoadSet.LoadNone)\nstage.Load(\"/City/Block_01\")",
+            "code_lang": "python",
+            "q": "What is the net effect of these two lines?",
+            "choices": [
+              "The whole stage loads, then Block_01 unloads",
+              "Nothing is payloaded at open; then only Block_01's payloads are loaded",
+              "The stage opens read-only",
+              "All payloads load twice"
+            ],
+            "answer": 1,
+            "explain": "Opening with <code>LoadNone</code> populates no payloads, then <code>stage.Load()</code> pulls in just the requested subtree, minimizing memory for large scenes."
+          },
+          {
+            "type": "mc",
+            "kind": "Population mask",
+            "q": "What does opening a stage with a <code>UsdStagePopulationMask</code> accomplish?",
+            "choices": [
+              "It hides prims in the viewport only",
+              "It composes only the masked subset of prim paths, skipping the rest",
+              "It masks out material assignments",
+              "It compresses the crate file"
+            ],
+            "answer": 1,
+            "explain": "A <code>UsdStagePopulationMask</code> limits composition to the specified prim paths, so you avoid the cost of composing and populating the entire scene."
+          },
+          {
+            "type": "mc",
+            "kind": "Draw modes",
+            "q": "How do draw-mode cards (e.g. bounding-box or texture cards) help large scenes?",
+            "choices": [
+              "They increase geometric detail for close-ups",
+              "They provide a lightweight stand-in render for a subtree without loading full geometry",
+              "They convert meshes to points permanently",
+              "They disable instancing"
+            ],
+            "answer": 1,
+            "explain": "Draw modes render a cheap proxy (a box or textured cards) for a subtree, letting huge scenes display and navigate without the cost of full geometry."
+          },
+          {
+            "type": "mc",
+            "kind": "Deactivation",
+            "q": "What does deactivating a prim (<code>prim.SetActive(False)</code>) do for performance?",
+            "choices": [
+              "It only hides it in the viewport but still composes it",
+              "It prunes the prim and its entire subtree from composition and traversal",
+              "It deletes the prim from disk",
+              "It converts it to an instance"
+            ],
+            "answer": 1,
+            "explain": "An inactive prim and its descendants are pruned from the composed scenegraph, so they cost nothing to traverse, image, or compose."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "For large datasets, the binary crate format (<code>.usdc</code>) generally loads faster and uses less disk than the ASCII (<code>.usda</code>) format.",
+            "answer": true,
+            "explain": "Crate is a compact binary format with lazy/random access, so it loads faster and is smaller than the human-readable ASCII format for large data."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "When many identical prims share composition, the single shared source they all point to is called a ____.",
+            "sub": "One word.",
+            "answer": [
+              "prototype",
+              "Prototype"
+            ],
+            "explain": "Instanced prims share a single <b>prototype</b> (formerly called a master), which is what makes instancing memory-efficient."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each optimization technique to its effect.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "Instancing",
+                "Share memory across identical prims"
+              ],
+              [
+                "Payload unload",
+                "Defer loading of heavy data"
+              ],
+              [
+                "Population mask",
+                "Compose only a subset of paths"
+              ],
+              [
+                "Draw-mode cards",
+                "Cheap proxy render for subtrees"
+              ]
+            ],
+            "explain": "Each technique reduces a different cost: memory, data loading, composition scope, or render/geometry cost."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "mask = Usd.StagePopulationMask([\"/World/Hero\"])\nstage = Usd.Stage.OpenMasked(\"scene.usd\", mask)\nprint([p.GetPath() for p in stage.Traverse()])",
+            "code_lang": "python",
+            "q": "What does the traversal print?",
+            "choices": [
+              "Every prim in scene.usd",
+              "Only prims within the /World/Hero subtree (plus required ancestors)",
+              "An empty list, since masks block traversal",
+              "Only the root prim"
+            ],
+            "answer": 1,
+            "explain": "<code>OpenMasked</code> composes only the masked paths, so traversal yields the <code>/World/Hero</code> subtree and the ancestor chain needed to reach it, not the whole scene."
+          },
+          {
+            "type": "mc",
+            "kind": "Instancing tradeoff",
+            "q": "What is a key limitation to remember when a prim is instanceable?",
+            "choices": [
+              "You cannot render it at all",
+              "You cannot author overrides on prims inside the shared prototype from the instance",
+              "It forces the stage to ASCII format",
+              "Its transform is ignored"
+            ],
+            "answer": 1,
+            "explain": "Prims beneath an instance are proxies into a shared prototype and are not directly editable; to override interior prims you must either not instance or edit the prototype/composition."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Unit 12 · Data Exchange",
+    "subtitle": "Formats, importers, and asset resolution",
+    "color": "#26c6da",
+    "section": 2,
+    "weight": 4,
+    "lessons": [
+      {
+        "name": "File Formats & Plugins",
+        "icon": "🧩",
+        "notes": [
+          "USD reads any format through an <b>SdfFileFormat</b> plugin; the core never hard-codes format knowledge beyond crate and usda.",
+          "<code>.usda</code> is ASCII text, <code>.usdc</code> is binary crate, <code>.usd</code> can be either, and <code>.usdz</code> is a zero-compression zip package.",
+          "Third-party formats like Alembic <code>.abc</code> are exposed as USD layers via a file-format plugin, so they can be sublayered or referenced like native layers.",
+          "File-format arguments are extra key-value pairs on an asset path (e.g. <code>foo.abc:SDF_FORMAT_ARGS:key=val</code>) that select or configure a reader.",
+          "Dynamic file formats generate their layer content procedurally at composition time, often driven by fields authored on a payload arc."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Plugin role",
+            "q": "What is the primary responsibility of an <code>SdfFileFormat</code> plugin?",
+            "choices": [
+              "Rendering a stage to an image",
+              "Translating a specific on-disk format into (and optionally out of) an SdfLayer's in-memory data",
+              "Resolving asset paths to physical file locations",
+              "Composing multiple layers into a stage"
+            ],
+            "answer": 1,
+            "explain": "An <code>SdfFileFormat</code> plugin reads a format into the SdfLayer data model and may write it back out, letting USD treat it like any other layer."
+          },
+          {
+            "type": "mc",
+            "kind": "Format identity",
+            "q": "Which statement about the <code>.usd</code> extension is correct?",
+            "choices": [
+              "It is always ASCII text",
+              "It is always binary crate",
+              "It can hold either ASCII (usda) or binary (usdc) content",
+              "It is a compressed archive of multiple layers"
+            ],
+            "answer": 2,
+            "explain": "The <code>.usd</code> extension is format-agnostic: the file may be usda or usdc, and USD detects which by inspecting the content."
+          },
+          {
+            "type": "mc",
+            "kind": "usdz packaging",
+            "q": "Which requirement is true of a <code>.usdz</code> package?",
+            "choices": [
+              "Its entries must be zip-compressed to save space",
+              "It is an uncompressed zip archive with entries aligned for direct memory access",
+              "It may contain only a single usda layer",
+              "It re-encodes all textures into crate format"
+            ],
+            "answer": 1,
+            "explain": "<code>.usdz</code> is a zip with <b>no compression</b> and aligned offsets so contained files can be read in place without extraction."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import Sdf\nlayer = Sdf.Layer.FindOrOpen(\"model.abc\")\nprint(layer is not None)",
+            "q": "Assuming the Alembic plugin is installed, what does opening <code>model.abc</code> as an Sdf.Layer demonstrate?",
+            "choices": [
+              "Alembic files must first be converted to usdc on disk",
+              "A file-format plugin exposes the .abc data as a USD layer in memory",
+              "Sdf.Layer cannot open non-USD extensions",
+              "The call always returns None for foreign formats"
+            ],
+            "answer": 1,
+            "explain": "The Alembic file-format plugin lets <code>Sdf.Layer</code> open a <code>.abc</code> file directly, presenting its data through the USD layer interface."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "# asset path with file-format arguments\nref = \"terrain.abc:SDF_FORMAT_ARGS:renderInterp=held&fps=24\"",
+            "q": "What is the purpose of the <code>:SDF_FORMAT_ARGS:</code> portion of this asset path?",
+            "choices": [
+              "It comments out the rest of the path",
+              "It marks the layer as a payload",
+              "It specifies an asset resolver context",
+              "It passes reader configuration to the file-format plugin for that layer"
+            ],
+            "answer": 3,
+            "explain": "File-format arguments after <code>:SDF_FORMAT_ARGS:</code> are handed to the plugin, letting one file produce differently-configured layers."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "A dynamic file format can generate its layer contents procedurally at composition time rather than reading fixed bytes from disk.",
+            "answer": true,
+            "explain": "Dynamic file formats compute layer content on the fly, frequently parameterized by fields authored on the referencing/payload arc."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "The binary, self-contained USD file format is commonly called the ____ format.",
+            "sub": "One word.",
+            "answer": [
+              "crate",
+              "Crate"
+            ],
+            "explain": "The binary format used by <code>.usdc</code> is known as the <b>crate</b> format."
+          },
+          {
+            "type": "mc",
+            "kind": "Args and caching",
+            "q": "Why do two references to the same file but with different file-format arguments produce two distinct layers?",
+            "choices": [
+              "File-format arguments disable the layer cache",
+              "Different arguments always point to different files on disk",
+              "The layer identifier includes the arguments, so they key different cache entries",
+              "USD randomly duplicates layers"
+            ],
+            "answer": 2,
+            "explain": "Because the format arguments are baked into the layer identifier, differing args yield separate identifiers and therefore separate cached layers."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each USD file extension to its description.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "usda",
+                "Human-readable ASCII layer"
+              ],
+              [
+                "usdc",
+                "Binary crate layer"
+              ],
+              [
+                "usdz",
+                "Uncompressed zip package"
+              ],
+              [
+                "abc",
+                "Alembic, read via a file-format plugin"
+              ]
+            ],
+            "explain": "usda is text, usdc is binary crate, usdz is a package archive, and abc is a foreign format bridged by a plugin."
+          },
+          {
+            "type": "mc",
+            "kind": "Plugin discovery",
+            "q": "How does USD know which file-format plugins exist and which extensions they handle?",
+            "choices": [
+              "It scans every DLL on the system at startup",
+              "Through plugInfo.json metadata registered with the plugin (Plug) system",
+              "Only formats compiled into the core are supported",
+              "The user must call a registration function for each file opened"
+            ],
+            "answer": 1,
+            "explain": "Plugins declare their supported extensions and target types in <code>plugInfo.json</code>, which the Plug registry reads to route files to the right reader."
+          }
+        ]
+      },
+      {
+        "name": "Importers & Exporters",
+        "icon": "🔄",
+        "notes": [
+          "Authoring into USD uses the <b>Sdf</b> (data model) and <b>Usd</b> (composed stage) APIs; UsdGeom, UsdShade, etc. add typed schema helpers.",
+          "Data mapping means expressing a foreign app's concepts (its nodes, materials, transforms) as USD prims, attributes, and schemas.",
+          "<b>Lossless</b> interchange preserves all data on round-trip; <b>lossy</b> interchange discards or approximates concepts USD or the target cannot represent.",
+          "On import, honor <code>metersPerUnit</code> and <code>upAxis</code> stage metadata so geometry arrives at the correct scale and orientation.",
+          "Round-tripping tests exporter/importer fidelity: export from a DCC, reimport, and compare against the original."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import Usd, UsdGeom, Sdf\nstage = Usd.Stage.CreateNew(\"cube.usda\")\nUsdGeom.SetStageMetersPerUnit(stage, 0.01)\nUsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)\ncube = UsdGeom.Cube.Define(stage, \"/Cube\")\nstage.GetRootLayer().Save()",
+            "q": "What does this exporter-style snippet establish for downstream consumers?",
+            "choices": [
+              "It sets the scene units to centimeters and up-axis to Y before authoring geometry",
+              "It renders the cube to disk",
+              "It converts the file to usdz",
+              "It imports an Alembic cube"
+            ],
+            "answer": 0,
+            "explain": "<code>metersPerUnit=0.01</code> declares centimeters and <code>upAxis=y</code> declares Y-up, so importers can correctly scale and orient the data."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import Usd, UsdGeom\nstage = Usd.Stage.Open(\"in.usd\")\nmpu = UsdGeom.GetStageMetersPerUnit(stage)\nscale = mpu / 0.01  # target app works in centimeters",
+            "q": "Why compute <code>scale = mpu / 0.01</code> when importing this stage into a centimeter-based application?",
+            "choices": [
+              "To convert the stage's linear units into the target app's centimeter units",
+              "To change the up-axis",
+              "To compress the file",
+              "metersPerUnit has no effect on geometry"
+            ],
+            "answer": 0,
+            "explain": "Dividing the stage's metersPerUnit by the target's units gives the factor to rescale incoming geometry so physical sizes match."
+          },
+          {
+            "type": "mc",
+            "kind": "Data mapping",
+            "q": "In USD interchange, what does 'data mapping' most precisely refer to?",
+            "choices": [
+              "Expressing a source application's concepts as equivalent USD prims, attributes, and schemas",
+              "Compressing large point clouds",
+              "Caching resolved asset paths",
+              "Assigning GPU memory for meshes"
+            ],
+            "answer": 0,
+            "explain": "Data mapping is the design work of translating a foreign app's model onto USD's prim/attribute/schema vocabulary."
+          },
+          {
+            "type": "mc",
+            "kind": "Lossy vs lossless",
+            "q": "An exporter drops a proprietary procedural modifier because USD has no equivalent representation. This is an example of:",
+            "choices": [
+              "Lossless interchange",
+              "A resolver context",
+              "Lossy interchange",
+              "A file-format argument"
+            ],
+            "answer": 2,
+            "explain": "Discarding data that cannot be represented on the target side is the defining characteristic of <b>lossy</b> interchange."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "A well-designed round-trip test exports data to USD and reimports it to confirm the result matches the original source scene.",
+            "answer": true,
+            "explain": "Round-tripping validates that both the exporter and importer preserve intent by comparing the reimported result to the original."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "Stage metadata that declares the linear scale of the scene, so 1 unit equals that many meters, is called ____PerUnit.",
+            "sub": "One word (fills the blank before 'PerUnit').",
+            "answer": [
+              "meters",
+              "Meters"
+            ],
+            "explain": "<code>metersPerUnit</code> tells consumers how many meters one scene unit represents."
+          },
+          {
+            "type": "mc",
+            "kind": "Up-axis",
+            "q": "A source app is Z-up and USD is authored Y-up. What must an importer do to place geometry correctly?",
+            "choices": [
+              "Nothing; up-axis is cosmetic",
+              "Apply a coordinate rotation (or account for the axis difference) so orientation is preserved",
+              "Convert the file to usdz",
+              "Change metersPerUnit"
+            ],
+            "answer": 1,
+            "explain": "When source and stage up-axes differ, the importer/exporter must rotate or otherwise reconcile the axes to keep orientation correct."
+          },
+          {
+            "type": "mc",
+            "kind": "Authoring API",
+            "q": "Which API layer would you use to author raw scene description (specs and fields) directly, below the composed-stage abstraction?",
+            "choices": [
+              "UsdShade",
+              "Hydra",
+              "UsdSkel",
+              "Sdf"
+            ],
+            "answer": 3,
+            "explain": "<b>Sdf</b> is the low-level scene-description API for authoring specs and fields directly, beneath the composed Usd stage layer."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each interchange concept to its meaning.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "Lossless",
+                "All data preserved on round-trip"
+              ],
+              [
+                "Lossy",
+                "Some concepts approximated or dropped"
+              ],
+              [
+                "Data mapping",
+                "Foreign concepts expressed as USD schemas"
+              ],
+              [
+                "metersPerUnit",
+                "Declares scene linear scale"
+              ]
+            ],
+            "explain": "These are the core notions an importer/exporter author must balance when moving data into and out of USD."
+          },
+          {
+            "type": "mc",
+            "kind": "Exporter design",
+            "q": "When a DCC concept has no native USD schema, a common robust strategy is to:",
+            "choices": [
+              "Refuse to export the prim entirely",
+              "Author it using an appropriate typed or applied schema, or fall back to custom attributes/metadata to avoid silent loss",
+              "Store it only in the file name",
+              "Force the whole stage to usdz"
+            ],
+            "answer": 1,
+            "explain": "Mapping to the closest schema (or preserving data in custom attributes/metadata) minimizes loss when no exact USD equivalent exists."
+          }
+        ]
+      },
+      {
+        "name": "Asset Resolution (Ar)",
+        "icon": "📂",
+        "notes": [
+          "<b>ArResolver</b> turns authored asset paths into resolved locations USD can open; it decouples logical references from physical storage.",
+          "Relative asset paths are <b>anchored</b> against the layer that authored them; absolute paths and search paths are resolved differently.",
+          "A <b>resolver context</b> carries per-stage configuration (like search paths or a project mapping) that scopes how paths resolve.",
+          "Custom/URI resolvers let studios plug in databases, version control, or <code>myprotocol://</code> schemes behind ordinary-looking asset paths.",
+          "Inside a <code>.usdz</code>, references use <b>package-relative</b> paths so the archive stays self-contained and portable."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Ar role",
+            "q": "What is the core job of the Asset Resolution (Ar) system?",
+            "choices": [
+              "Convert authored asset paths into resolved paths that can be opened",
+              "Compose prim opinions across layers",
+              "Rasterize geometry for display",
+              "Validate schema type names"
+            ],
+            "answer": 0,
+            "explain": "Ar maps logical asset paths (as authored) to concrete resolved paths, isolating USD from where and how assets are actually stored."
+          },
+          {
+            "type": "mc",
+            "kind": "Anchoring",
+            "q": "A layer at <code>/proj/shots/a.usd</code> references <code>./geo/tree.usd</code>. How is this relative path resolved by default?",
+            "choices": [
+              "Against the current working directory",
+              "Anchored relative to the referencing layer's location",
+              "Against a global environment variable only",
+              "It fails because relative paths are illegal"
+            ],
+            "answer": 1,
+            "explain": "Relative asset paths are anchored to the layer that authored them, so it resolves next to <code>/proj/shots/</code>."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "A resolver context lets the same authored asset path resolve to different physical assets depending on the context bound to the stage.",
+            "answer": true,
+            "explain": "The resolver context supplies configuration (e.g. search paths or mappings) so identical paths can resolve differently per stage/session."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import Ar\nresolver = Ar.GetResolver()\nresolved = resolver.Resolve(\"assets/chair.usd\")\nprint(resolved)",
+            "q": "What does <code>Ar.GetResolver().Resolve(...)</code> return here?",
+            "choices": [
+              "The composed prim at that path",
+              "A resolved asset path usable to open the asset, or empty if it cannot be found",
+              "The layer's file format",
+              "A resolver context object"
+            ],
+            "answer": 1,
+            "explain": "<code>Resolve</code> produces the concrete resolved path (empty if resolution fails), which USD then uses to open the asset."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import Usd, Ar\nctx = Ar.GetResolver().CreateDefaultContextForAsset(\"/proj/shot.usd\")\nwith Ar.ResolverContextBinder(ctx):\n    stage = Usd.Stage.Open(\"/proj/shot.usd\")",
+            "q": "Why bind the resolver context before opening the stage in this snippet?",
+            "choices": [
+              "To compress the stage",
+              "To ensure asset paths resolve using configuration appropriate to that asset (e.g. its search paths)",
+              "To disable references",
+              "To convert units"
+            ],
+            "answer": 1,
+            "explain": "Binding the context scopes resolution to the right configuration so the stage's asset paths resolve consistently."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "A custom resolver that handles paths beginning with a scheme like <code>omniverse://</code> is often called a ____ resolver.",
+            "sub": "Three letters, uppercase.",
+            "answer": [
+              "URI",
+              "uri"
+            ],
+            "explain": "Schemes such as <code>omniverse://</code> are handled by <b>URI</b> resolvers registered for that protocol."
+          },
+          {
+            "type": "mc",
+            "kind": "usdz paths",
+            "q": "How are references between assets stored inside a single <code>.usdz</code> package expressed?",
+            "choices": [
+              "As absolute filesystem paths",
+              "As URLs to a remote server",
+              "As package-relative paths within the archive",
+              "They are not allowed at all"
+            ],
+            "answer": 2,
+            "explain": "Intra-package references use package-relative paths so the <code>.usdz</code> remains self-contained and portable."
+          },
+          {
+            "type": "mc",
+            "kind": "Search paths",
+            "q": "What best describes a search-path (non-anchored) asset reference?",
+            "choices": [
+              "It must always be an absolute path",
+              "The resolver looks it up against configured search locations rather than anchoring to the layer",
+              "It is only valid inside usdz",
+              "It disables the resolver context"
+            ],
+            "answer": 1,
+            "explain": "Search-path references are resolved by consulting the resolver's configured search locations instead of anchoring to the authoring layer."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each Ar concept to its description.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "ArResolver",
+                "Maps asset paths to resolved paths"
+              ],
+              [
+                "Resolver context",
+                "Per-stage resolution configuration"
+              ],
+              [
+                "Anchoring",
+                "Resolving a relative path against its layer"
+              ],
+              [
+                "URI resolver",
+                "Handles scheme-based paths"
+              ]
+            ],
+            "explain": "Together these define how USD locates assets across layers, packages, and custom back-ends."
+          },
+          {
+            "type": "mc",
+            "kind": "Delivery",
+            "q": "To hand off a scene so all references resolve on another machine, a common approach is to:",
+            "choices": [
+              "Ship only the root layer and hope paths match",
+              "Hard-code absolute paths from your machine",
+              "Delete the resolver context",
+              "Bundle all dependencies (e.g. into a usdz or a self-contained folder with correct relative paths)"
+            ],
+            "answer": 3,
+            "explain": "Packaging every dependency with resolvable (relative or package) paths ensures the delivered scene opens correctly elsewhere."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Unit 13 · Pipeline Development",
+    "subtitle": "Structure, flatten, package, version",
+    "color": "#ffa726",
+    "section": 2,
+    "weight": 3,
+    "lessons": [
+      {
+        "name": "Asset Structure & Modularity",
+        "icon": "🧱",
+        "notes": [
+          "An asset's public interface is a single root prim declared via <code>defaultPrim</code> in the layer metadata; consumers reference the asset without naming an internal path.",
+          "Put a <b>payload</b> at the asset root so aggregations can defer loading heavy data until explicitly loaded.",
+          "Use <b>references</b> to compose (aggregate) components into assemblies; each reference brings in another asset's defaultPrim.",
+          "Atomic assets are self-contained leaf components; assemblies aggregate multiple atomic assets via references/payloads.",
+          "Follow layered contribution conventions: separate model, look (material), and animation edits into distinct layers for clean ownership."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Default prim",
+            "q": "Why does a well-structured USD asset declare a single <code>defaultPrim</code> in its root layer metadata?",
+            "choices": [
+              "It forces the stage to load all payloads immediately",
+              "It provides the asset's public interface so a reference can target the asset without specifying an internal prim path",
+              "It disables composition arcs on child prims",
+              "It converts the layer to binary crate format"
+            ],
+            "answer": 1,
+            "explain": "When a layer is referenced without an explicit prim path, USD uses the layer's <code>defaultPrim</code>, giving the asset a single stable public entry point."
+          },
+          {
+            "type": "mc",
+            "kind": "Payload purpose",
+            "q": "What is the primary advantage of placing a <b>payload</b> at the root of a heavy asset rather than a reference?",
+            "choices": [
+              "Payloads compose more strongly than references",
+              "Payloads can be unloaded/deferred, so large scenes can stay lightweight until data is explicitly loaded",
+              "Payloads automatically flatten the stage",
+              "Payloads bypass the LIVRPS composition order"
+            ],
+            "answer": 1,
+            "explain": "Payloads are a load-deferrable arc: a stage can open with payloads unloaded and load them on demand, enabling scalable scene assembly."
+          },
+          {
+            "type": "mc",
+            "kind": "Assembly vs atomic",
+            "q": "In common pipeline terminology, how do an 'atomic asset' and an 'assembly' differ?",
+            "choices": [
+              "An atomic asset aggregates others; an assembly is a leaf component",
+              "An atomic asset is a self-contained leaf component; an assembly aggregates multiple atomic assets via references/payloads",
+              "They are identical concepts",
+              "An assembly can only contain a single prim"
+            ],
+            "answer": 1,
+            "explain": "Atomic assets are self-contained building blocks, while assemblies aggregate several atomic assets into a larger structure using composition arcs."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "#usda 1.0\n(\n    defaultPrim = \"Chair\"\n)\n\ndef Xform \"Chair\" (\n    payload = @./Chair_payload.usd@\n)\n{\n}",
+            "q": "What does this asset root layer establish?",
+            "choices": [
+              "It flattens Chair_payload.usd into this file",
+              "It exposes a <code>Chair</code> prim as the default interface and defers its heavy data behind a payload",
+              "It creates a reference that cannot be unloaded",
+              "It sets Chair as a class prim for inheritance"
+            ],
+            "answer": 1,
+            "explain": "The <code>defaultPrim</code> exposes <code>Chair</code> as the public entry, and the payload arc lets the actual geometry load on demand."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import Usd, Sdf\nstage = Usd.Stage.CreateNew('set.usda')\nstage.SetDefaultPrim(stage.DefinePrim('/Set', 'Xform'))\ntable = stage.DefinePrim('/Set/Table', 'Xform')\ntable.GetReferences().AddReference('@./table.usd@')",
+            "q": "What pipeline pattern is this code building?",
+            "choices": [
+              "A flattened single-file delivery",
+              "An assembly: /Set aggregates the table atomic asset via a reference under a defaultPrim",
+              "A payload-only lazy load with no default prim",
+              "A variant set switching table models"
+            ],
+            "answer": 1,
+            "explain": "It sets a defaultPrim on <code>/Set</code> and references an external table asset beneath it, aggregating components into an assembly."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each layered-contribution layer to what it typically owns.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "model layer",
+                "geometry / topology of the asset"
+              ],
+              [
+                "look layer",
+                "materials and shading assignments"
+              ],
+              [
+                "anim layer",
+                "time-sampled transforms / deformation"
+              ]
+            ],
+            "explain": "Separating model, look, and anim into dedicated layers gives each department clear, non-overlapping ownership."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "A reference arc uses the referenced layer's <code>defaultPrim</code> when no target prim path is supplied.",
+            "answer": true,
+            "explain": "Both references and payloads fall back to the layer's <code>defaultPrim</code> if the arc omits an explicit prim path."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "The single root prim that defines an asset's public interface is declared with the layer metadata field ____.",
+            "sub": "One word.",
+            "answer": [
+              "defaultPrim",
+              "defaultprim"
+            ],
+            "explain": "<code>defaultPrim</code> in layer metadata names the prim used when the layer is referenced/payloaded without a path."
+          },
+          {
+            "type": "mc",
+            "kind": "Modularity",
+            "q": "Which practice most improves the scalability of assembling a large environment from many assets?",
+            "choices": [
+              "Flattening every asset into one .usdc before assembly",
+              "Referencing/payloading atomic assets by their defaultPrim so heavy data can be deferred and updated independently",
+              "Copying each asset's prims inline into the set layer",
+              "Using only over prims with no arcs"
+            ],
+            "answer": 1,
+            "explain": "Composing via references/payloads keeps assets modular and independently updatable, and payloads allow deferred loading for scalability."
+          },
+          {
+            "type": "mc",
+            "kind": "Interface stability",
+            "q": "Why is it risky for a downstream shot to reference an internal prim path inside an asset instead of the asset's defaultPrim?",
+            "choices": [
+              "Internal paths compose faster and break caching",
+              "Internal reorganization of the asset can move that prim, breaking the downstream reference",
+              "USD forbids referencing internal paths",
+              "It forces the layer into usda format"
+            ],
+            "answer": 1,
+            "explain": "The defaultPrim is the stable contract; targeting internal paths couples consumers to the asset's private structure, which may change."
+          }
+        ]
+      },
+      {
+        "name": "Flatten & Package",
+        "icon": "📦",
+        "notes": [
+          "<code>stage.Flatten()</code> / <code>ExportToString()</code> compose the entire stage into a single fully-resolved layer, baking in all references, payloads, and overrides.",
+          "<code>UsdUtils.FlattenLayerStack</code> collapses one layer stack into a single layer but PRESERVES references/payloads to external assets.",
+          "<code>usdcat --flatten</code> is the command-line equivalent of stage flattening.",
+          "Package delivery assets with <code>UsdUtils.CreateNewUsdzPackage</code> or the <code>usdzip</code> tool.",
+          "<code>UsdUtils.ComputeAllDependencies</code> gathers every layer, texture, and asset a stage depends on for packaging or hand-off."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Flatten scope",
+            "q": "What does <code>stage.Flatten()</code> produce?",
+            "choices": [
+              "A layer stack with references preserved",
+              "A single layer with all composition arcs fully composed and resolved into one flat opinion set",
+              "A .usdz archive",
+              "A dependency manifest"
+            ],
+            "answer": 1,
+            "explain": "<code>Stage.Flatten()</code> composes the whole stage, baking references, payloads, variants, and overrides into one self-contained layer."
+          },
+          {
+            "type": "mc",
+            "kind": "FlattenLayerStack",
+            "q": "How does <code>UsdUtils.FlattenLayerStack</code> differ from flattening a whole stage?",
+            "choices": [
+              "It produces a .usdz file",
+              "It collapses a single layer stack into one layer but keeps references/payloads to external assets intact",
+              "It only works on binary crate files",
+              "It deletes all overrides"
+            ],
+            "answer": 1,
+            "explain": "<code>FlattenLayerStack</code> merges the sublayer stack into one layer while leaving reference/payload arcs to other assets unresolved, so external assets stay modular."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "usdcat --flatten scene.usd -o flat.usda",
+            "q": "What does this command do?",
+            "choices": [
+              "Zips scene.usd into a usdz package",
+              "Fully composes scene.usd and writes the resolved single-layer result to flat.usda",
+              "Lists scene.usd's external dependencies",
+              "Extracts only the default prim"
+            ],
+            "answer": 1,
+            "explain": "<code>usdcat --flatten</code> composes the stage and writes the flattened result; the <code>.usda</code> extension makes the output human-readable ASCII."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "from pxr import UsdUtils, Sdf\nUsdUtils.CreateNewUsdzPackage(\n    Sdf.AssetPath('asset.usd'),\n    'asset.usdz')",
+            "q": "What is the result of this call?",
+            "choices": [
+              "It flattens asset.usd into a single .usda",
+              "It packages asset.usd and all its referenced dependencies into a self-contained asset.usdz archive",
+              "It mutes all sublayers",
+              "It computes a diff between two layers"
+            ],
+            "answer": 1,
+            "explain": "<code>CreateNewUsdzPackage</code> gathers the asset plus its dependencies (textures, referenced layers) into one portable <code>.usdz</code> package."
+          },
+          {
+            "type": "mc",
+            "kind": "Dependency gather",
+            "q": "Which function returns the full set of layers, assets, and unresolved paths a stage depends on for packaging?",
+            "choices": [
+              "UsdUtils.FlattenLayerStack",
+              "UsdUtils.ComputeAllDependencies",
+              "Stage.Flatten",
+              "Sdf.Layer.Reload"
+            ],
+            "answer": 1,
+            "explain": "<code>UsdUtils.ComputeAllDependencies</code> walks the composition to collect every dependent file, which is essential before hand-off or archiving."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "Flattening a stage with <code>Stage.Flatten()</code> discards the modular composition structure, making it a poor choice for ongoing collaborative editing.",
+            "answer": true,
+            "explain": "Full flattening bakes everything into one layer and loses the arc structure; it suits delivery/debugging, not multi-department editing."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "The command-line tool used to create or inspect a <code>.usdz</code> archive is called ____.",
+            "sub": "One word.",
+            "answer": [
+              "usdzip",
+              "Usdzip"
+            ],
+            "explain": "<code>usdzip</code> is the CLI utility for building and listing the contents of USDZ packages."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each operation to its result.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "Stage.Flatten()",
+                "one fully-composed layer, arcs baked in"
+              ],
+              [
+                "UsdUtils.FlattenLayerStack",
+                "one layer, external references preserved"
+              ],
+              [
+                "CreateNewUsdzPackage",
+                "portable archive with dependencies"
+              ]
+            ],
+            "explain": "Each addresses a different need: total composition, layer-stack collapse with modularity kept, or portable packaging."
+          },
+          {
+            "type": "mc",
+            "kind": "When to flatten",
+            "q": "Which situation most favors flattening over staying layered?",
+            "choices": [
+              "Multiple departments editing the same asset simultaneously",
+              "Delivering a final, self-contained scene to a client or renderer that shouldn't need external files",
+              "Iterating on shot-level overrides nightly",
+              "Keeping per-department ownership of edits"
+            ],
+            "answer": 1,
+            "explain": "Flattening is ideal for final delivery/interchange where a single self-contained file is wanted; layered structure is better for ongoing editing."
+          },
+          {
+            "type": "mc",
+            "kind": "Format choice",
+            "q": "When flattening for a human to inspect the composed result, which output is most appropriate?",
+            "choices": [
+              "<code>.usdc</code> binary crate for readability",
+              "<code>.usda</code> ASCII text so the composed opinions can be read and diffed",
+              "<code>.usdz</code> so it can be edited in place",
+              "<code>.abc</code> Alembic for USD interop"
+            ],
+            "answer": 1,
+            "explain": "<code>.usda</code> is the human-readable ASCII format; use it when you need to read or diff the flattened output."
+          }
+        ]
+      },
+      {
+        "name": "Versioning & Collaboration",
+        "icon": "🔀",
+        "notes": [
+          "Text <code>.usda</code> layers diff and merge well in version control; binary <code>.usdc</code> crate files are compact and fast but not human-diffable.",
+          "Pin sublayers and references to explicit versioned asset paths so a scene reproduces deterministically.",
+          "Shot overrides live in stronger (higher) layers and are non-destructive: they override without editing the source asset.",
+          "Layer by department/ownership so contributors edit their own layers and avoid stepping on each other.",
+          "Use edit targets to direct authoring to a specific layer, and layer muting to temporarily disable layers during collaboration."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Diffability",
+            "q": "Why do teams often keep hand-edited layers in <code>.usda</code> rather than <code>.usdc</code> for version control?",
+            "choices": [
+              "<code>.usda</code> loads faster than crate",
+              "<code>.usda</code> is text, so changes diff and merge cleanly in source control, while <code>.usdc</code> is binary",
+              "<code>.usdc</code> cannot be referenced",
+              "<code>.usda</code> supports more prim types"
+            ],
+            "answer": 1,
+            "explain": "ASCII <code>.usda</code> produces meaningful text diffs and merges; binary <code>.usdc</code> is efficient but opaque to line-based version control."
+          },
+          {
+            "type": "mc",
+            "kind": "Non-destructive",
+            "q": "How does USD enable a shot to override an asset's attributes without altering the asset itself?",
+            "choices": [
+              "By flattening the asset into the shot",
+              "By authoring override opinions in a stronger layer that composes over the referenced asset",
+              "By editing the asset's crate file directly",
+              "By deleting the reference and re-authoring"
+            ],
+            "answer": 1,
+            "explain": "Stronger layers win under LIVRPS; shot-level overrides sit above the referenced asset and are non-destructive to the source."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "stage = Usd.Stage.Open('shot.usda')\nover = stage.OverridePrim('/Set/Chair')\nedit = Usd.EditContext(stage, stage.GetSessionLayer())\nover.GetAttribute('primvars:displayColor')",
+            "q": "What is the effect of using <code>Usd.EditContext</code> with the session layer here?",
+            "choices": [
+              "It permanently bakes edits into the referenced chair asset",
+              "It redirects authoring so edits land in the session layer, leaving the saved asset and root layer untouched",
+              "It mutes the root layer",
+              "It flattens the stage on save"
+            ],
+            "answer": 1,
+            "explain": "An <code>EditContext</code> temporarily sets the edit target; authoring into the session layer keeps changes transient and non-destructive."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "root = stage.GetRootLayer()\nroot.subLayerPaths.insert(0, './asset_v012.usda')",
+            "q": "What good versioning practice does inserting an explicitly versioned path demonstrate?",
+            "choices": [
+              "It disables composition",
+              "It pins the sublayer to a specific asset version so the scene composes deterministically",
+              "It converts the layer to usdz",
+              "It mutes the sublayer"
+            ],
+            "answer": 1,
+            "explain": "Pinning to a versioned path (<code>asset_v012</code>) makes the composed result reproducible instead of drifting with a 'latest' pointer."
+          },
+          {
+            "type": "mc",
+            "kind": "Edit target",
+            "q": "What does a stage's <b>edit target</b> control?",
+            "choices": [
+              "Which renderer is used",
+              "Which layer receives newly authored opinions",
+              "Which prim is the default prim",
+              "Which variant is selected"
+            ],
+            "answer": 1,
+            "explain": "The edit target determines the destination layer for authoring, letting a contributor write into their own department layer."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "Muting a layer with <code>Stage.MuteLayer()</code> permanently removes its opinions from the file on disk.",
+            "answer": false,
+            "explain": "Layer muting only excludes the layer from composition on the current stage; the layer's file and opinions remain intact and can be unmuted."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "Temporarily excluding a layer from a stage's composition without deleting it is called layer ____.",
+            "sub": "One word.",
+            "answer": [
+              "muting",
+              "Muting"
+            ],
+            "explain": "Layer muting removes a layer from composition for the current session only; the underlying file is unchanged."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each collaboration mechanism to its purpose.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "edit target",
+                "directs new opinions to a chosen layer"
+              ],
+              [
+                "layer muting",
+                "excludes a layer from composition temporarily"
+              ],
+              [
+                "versioned pin",
+                "references an explicit asset version for reproducibility"
+              ]
+            ],
+            "explain": "These three tools let teams author, isolate, and reproduce edits without destructive changes."
+          },
+          {
+            "type": "mc",
+            "kind": "Ownership",
+            "q": "Why do studios split a shot into per-department layers (e.g., layout, anim, lighting) with defined strength order?",
+            "choices": [
+              "It reduces the total number of prims",
+              "It gives each department an isolated layer to own, minimizing merge conflicts and clarifying override precedence",
+              "It forces every layer into crate format",
+              "It prevents the use of references"
+            ],
+            "answer": 1,
+            "explain": "Department layering assigns clear ownership and, via layer strength order, deterministic override precedence, reducing collaboration conflicts."
+          },
+          {
+            "type": "mc",
+            "kind": "Crate tradeoff",
+            "q": "A studio commits large simulation caches to version control. Which format and rationale is most appropriate?",
+            "choices": [
+              "<code>.usda</code>, because binary never diffs",
+              "<code>.usdc</code>, because binary crate is compact and fast, and huge caches wouldn't produce useful text diffs anyway",
+              "<code>.usdz</code>, because it is editable in place",
+              "<code>.abc</code>, because USD can't store caches"
+            ],
+            "answer": 1,
+            "explain": "For large machine-generated data, compact/fast binary <code>.usdc</code> is preferred since a line-diff of such data offers no practical benefit."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Unit 14 · Customizing USD",
+    "subtitle": "Schemas, plugins, and extensions",
+    "color": "#ab47bc",
+    "section": 2,
+    "weight": 2,
+    "lessons": [
+      {
+        "name": "Custom Schemas",
+        "icon": "🧬",
+        "notes": [
+          "A <b>typed (IsA) schema</b> defines a new prim type; a prim can be exactly one concrete type. An <b>API schema</b> adds properties/behavior to an existing prim and never appears as a prim's typeName.",
+          "<b>Single-apply</b> API schemas are applied once per prim (e.g. <code>PhysicsRigidBodyAPI</code>). <b>Multiple-apply</b> API schemas can be applied several times with distinct instance names, namespacing their properties.",
+          "Schema classes are declared in a <code>schema.usda</code> file using <code>class</code> definitions with <code>inherits</code> and a <code>customData</code> block controlling code generation.",
+          "Typed schemas ultimately derive from <code>UsdTyped</code>; applied API schemas derive from <code>UsdAPISchemaBase</code> (via <code>UsdSchemaBase</code>).",
+          "<b>Codeless schemas</b> are declared entirely through <code>generatedSchema.usda</code> + <code>plugInfo.json</code> with no compiled C++/Python; set <code>skipCodeGeneration = true</code> in the schema's global <code>customData</code>."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "IsA vs API",
+            "q": "What is the fundamental difference between a typed (IsA) schema and an applied API schema in OpenUSD?",
+            "choices": [
+              "A typed schema defines a prim's type/identity, while an API schema adds properties/behavior to an existing prim without changing its type",
+              "A typed schema only works in Python; an API schema only works in C++",
+              "A typed schema cannot have properties; an API schema cannot have relationships",
+              "There is no difference; the terms are interchangeable"
+            ],
+            "answer": 0,
+            "explain": "A typed (IsA) schema establishes the prim's concrete typeName and identity, whereas an applied API schema layers extra properties and behavior onto an existing prim without becoming its type."
+          },
+          {
+            "type": "mc",
+            "kind": "Apply counts",
+            "q": "Which statement about single-apply versus multiple-apply API schemas is correct?",
+            "choices": [
+              "Single-apply schemas can be applied many times; multiple-apply only once",
+              "Multiple-apply API schemas are applied with an instance name and can be applied multiple times to one prim; single-apply are applied at most once",
+              "Both are limited to exactly one application per stage",
+              "Multiple-apply schemas cannot namespace their properties"
+            ],
+            "answer": 1,
+            "explain": "Multiple-apply API schemas take an instance name so the same schema can be applied several times to a prim, with each instance's properties namespaced; single-apply schemas apply at most once."
+          },
+          {
+            "type": "mc",
+            "kind": "Base class",
+            "q": "In generated C++, an applied API schema class ultimately derives (directly or indirectly) from which base?",
+            "choices": [
+              "UsdGeomImageable",
+              "UsdTyped",
+              "UsdAPISchemaBase",
+              "SdfLayer"
+            ],
+            "answer": 2,
+            "explain": "Applied API schemas derive from <code>UsdAPISchemaBase</code>, while concrete/typed schemas derive from <code>UsdTyped</code>; both share the common root <code>UsdSchemaBase</code>."
+          },
+          {
+            "type": "mc",
+            "kind": "Codeless schemas",
+            "q": "What defines a codeless schema?",
+            "choices": [
+              "A schema written only in Python with no C++",
+              "A schema declared purely through generatedSchema.usda and plugInfo.json with no compiled library, enabled via skipCodeGeneration",
+              "A schema that has no properties at all",
+              "A schema that only works in usdview"
+            ],
+            "answer": 1,
+            "explain": "A codeless schema ships as <code>generatedSchema.usda</code> plus a <code>plugInfo.json</code> entry and requires no compiled code; it is enabled with <code>skipCodeGeneration = true</code> in the schema global metadata."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "class \"MyLightAPI\" (\n    inherits = </APISchemaBase>\n    customData = {\n        string className = \"MyLightAPI\"\n        token apiSchemaType = \"multipleApply\"\n        token propertyNamespacePrefix = \"my\"\n    }\n) {\n    float intensity = 1.0\n}",
+            "q": "What does this schema.usda declaration define?",
+            "choices": [
+              "A concrete typed prim named MyLightAPI",
+              "A multiple-apply API schema whose properties are namespaced under an instance-specific prefix",
+              "A codeless schema that skips code generation",
+              "An abstract base prim type"
+            ],
+            "answer": 1,
+            "explain": "<code>inherits = APISchemaBase</code> plus <code>apiSchemaType = \"multipleApply\"</code> defines a multiple-apply API schema; the <code>propertyNamespacePrefix</code> and instance name namespace its properties."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "over \"GLOBAL\" (\n    customData = {\n        string libraryName = \"myTools\"\n        bool skipCodeGeneration = true\n    }\n) {\n}",
+            "q": "What is the effect of this GLOBAL block in a schema.usda?",
+            "choices": [
+              "It disables the schema entirely",
+              "It marks the schema library as codeless so usdGenSchema emits only generatedSchema.usda and plugInfo, no C++/Python",
+              "It forces regeneration of C++ on every build",
+              "It renames all prims to GLOBAL"
+            ],
+            "answer": 1,
+            "explain": "Setting <code>skipCodeGeneration = true</code> in the schema library's <code>GLOBAL</code> customData produces a codeless schema: <code>usdGenSchema</code> outputs the schema definition and plugin metadata but no compiled source."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "An applied API schema can appear as the value of a prim's typeName (its concrete type).",
+            "answer": false,
+            "explain": "API schemas never serve as a prim's type; they are listed in the prim's <code>apiSchemas</code> metadata. Only typed (IsA) schemas define the concrete typeName."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "A single prim can have multiple applied API schemas but exactly one concrete typed schema.",
+            "answer": true,
+            "explain": "A prim has at most one concrete type (IsA), but many API schemas can be applied to it, each contributing additional properties and behavior."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "An API schema that can be applied to a prim more than once, each time with a distinct instance name, is called a ____-apply API schema.",
+            "sub": "One word.",
+            "answer": [
+              "multiple",
+              "Multiple"
+            ],
+            "explain": "Multiple-apply API schemas take an instance name so the schema can be applied repeatedly, with each application's properties namespaced."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each schema concept to its description.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "Typed (IsA) schema",
+                "Defines a prim's concrete type/identity"
+              ],
+              [
+                "Single-apply API schema",
+                "Adds properties once per prim"
+              ],
+              [
+                "Codeless schema",
+                "Declared via generatedSchema.usda + plugInfo, no compiled code"
+              ]
+            ],
+            "explain": "Typed schemas set a prim's identity, single-apply API schemas add properties once, and codeless schemas need no compiled library."
+          }
+        ]
+      },
+      {
+        "name": "usdGenSchema Workflow",
+        "icon": "⚙️",
+        "notes": [
+          "<code>usdGenSchema</code> reads your <code>schema.usda</code> and emits C++ headers/sources, Python bindings (wrap files), a <code>generatedSchema.usda</code>, and a <code>plugInfo.json</code> stub.",
+          "<code>generatedSchema.usda</code> is the flattened, registry-ready form of your schema classes; USD's schema registry reads it at runtime to know each schema's properties and fallbacks.",
+          "You register the schema library by pointing <code>plugInfo.json</code> at it and ensuring that plugInfo is on a plugin search path (e.g. via <code>PXR_PLUGINPATH_NAME</code> or install location).",
+          "After generation you compile/link the library (unless codeless), then USD discovers it through the <code>Plug</code> system at runtime.",
+          "Typical invocation: <code>usdGenSchema schema.usda .</code> — the second argument is the output directory; the tool is a Python script shipped with USD."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Tool purpose",
+            "q": "What is the primary purpose of usdGenSchema?",
+            "choices": [
+              "To validate a USD stage for errors",
+              "To generate C++/Python schema classes and registry data from a schema.usda definition file",
+              "To convert USD files to glTF",
+              "To render a USD scene with Hydra"
+            ],
+            "answer": 1,
+            "explain": "<code>usdGenSchema</code> is a code generator that turns a <code>schema.usda</code> definition into C++ headers/sources, Python bindings, and the runtime <code>generatedSchema.usda</code>."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "$ usdGenSchema schema.usda .",
+            "q": "In this command, what does the second argument (the dot) represent?",
+            "choices": [
+              "The Python interpreter to use",
+              "The output directory where generated files are written",
+              "A verbosity flag",
+              "The name of the schema class"
+            ],
+            "answer": 1,
+            "explain": "The second positional argument is the output directory; <code>usdGenSchema schema.usda .</code> writes the generated sources into the current directory."
+          },
+          {
+            "type": "mc",
+            "kind": "Generated output",
+            "q": "Which file produced by usdGenSchema is loaded by USD's schema registry at runtime to learn each schema's properties and fallback values?",
+            "choices": [
+              "schema.usda",
+              "generatedSchema.usda",
+              "CMakeLists.txt",
+              "wrapMyType.cpp"
+            ],
+            "answer": 1,
+            "explain": "<code>generatedSchema.usda</code> is the flattened schema definition the runtime schema registry consumes; the input <code>schema.usda</code> is authoring-time only."
+          },
+          {
+            "type": "mc",
+            "kind": "Registration",
+            "q": "How does a compiled schema library get discovered and loaded by USD at runtime?",
+            "choices": [
+              "It is hardcoded into the USD core library",
+              "Through the Plug system reading a plugInfo.json on a plugin search path",
+              "By placing it in the current working directory only",
+              "USD scans every folder on the machine automatically"
+            ],
+            "answer": 1,
+            "explain": "USD's <code>Plug</code> registry discovers plugins by reading <code>plugInfo.json</code> files found on plugin search paths, then loads the library on demand."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "{\n  \"Plugins\": [\n    {\n      \"Name\": \"myTools\",\n      \"Type\": \"library\",\n      \"LibraryPath\": \"../myTools.so\",\n      \"ResourcePath\": \"resources\",\n      \"Info\": { \"Types\": { \"MyThing\": { \"bases\": [\"UsdTyped\"] } } }\n    }\n  ]\n}",
+            "q": "What does this plugInfo.json register?",
+            "choices": [
+              "A file-format plugin named myTools",
+              "A schema library exposing the typed schema MyThing (deriving from UsdTyped) in a compiled library",
+              "A Hydra render delegate",
+              "A codeless schema with no library"
+            ],
+            "answer": 1,
+            "explain": "The <code>Type: \"library\"</code> with a <code>LibraryPath</code> and a <code>Types</code> entry declaring <code>MyThing</code> deriving from <code>UsdTyped</code> registers a compiled typed-schema library."
+          },
+          {
+            "type": "mc",
+            "kind": "Codeless build",
+            "q": "For a codeless schema, which step of the normal workflow is skipped?",
+            "choices": [
+              "Writing schema.usda",
+              "Running usdGenSchema",
+              "Compiling and linking a C++ library",
+              "Placing plugInfo.json on the search path"
+            ],
+            "answer": 2,
+            "explain": "Codeless schemas require no compiled code, so the build/link step is skipped; you still author <code>schema.usda</code>, run <code>usdGenSchema</code>, and register the resulting <code>generatedSchema.usda</code> via <code>plugInfo.json</code>."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "You should hand-edit generatedSchema.usda directly instead of editing schema.usda and re-running usdGenSchema.",
+            "answer": false,
+            "explain": "<code>generatedSchema.usda</code> is a generated artifact; you edit the source <code>schema.usda</code> and regenerate, otherwise your edits are overwritten and drift from the definition."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "usdGenSchema is distributed as a Python script that ships with the USD build.",
+            "answer": true,
+            "explain": "<code>usdGenSchema</code> is a Python-based command-line tool included with USD; it uses the USD Python modules to read the schema definition."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "The flattened, registry-ready schema file emitted by usdGenSchema is named ____Schema.usda.",
+            "sub": "One word (the prefix).",
+            "answer": [
+              "generated",
+              "Generated"
+            ],
+            "explain": "<code>generatedSchema.usda</code> is the runtime-consumed output; the schema registry reads it to learn properties and fallbacks."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each usdGenSchema artifact to its role.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "schema.usda",
+                "Authoring-time input definition you edit"
+              ],
+              [
+                "generatedSchema.usda",
+                "Flattened output read by the runtime schema registry"
+              ],
+              [
+                "plugInfo.json",
+                "Metadata that lets the Plug system discover the library"
+              ]
+            ],
+            "explain": "You author <code>schema.usda</code>, <code>usdGenSchema</code> emits <code>generatedSchema.usda</code>, and <code>plugInfo.json</code> registers the plugin for discovery."
+          }
+        ]
+      },
+      {
+        "name": "Plugins & Extensibility",
+        "icon": "🔌",
+        "notes": [
+          "USD's <code>Plug</code> library provides plugin registration and lazy loading; every plugin ships a <code>plugInfo.json</code> declaring its name, type, library path, and the types it provides.",
+          "The environment variable <b><code>PXR_PLUGINPATH_NAME</code></b> lists additional directories USD scans for <code>plugInfo.json</code> files, extending default install paths.",
+          "<b>File-format plugins</b> subclass <code>SdfFileFormat</code>, letting USD read/write custom formats and, via dynamic file formats, generate scene description procedurally.",
+          "<b>Dynamic (procedural) payloads</b> use a dynamic file-format plugin whose output depends on file-format arguments, enabling parameterized, on-demand scene generation.",
+          "The <b>Kind</b> registry is extensible via plugInfo, and Hydra 2.0 supports <b>scene-index plugins</b> that filter or synthesize scene data in the Hydra pipeline."
+        ],
+        "questions": [
+          {
+            "type": "mc",
+            "kind": "Plug system",
+            "q": "What is the role of USD's Plug library?",
+            "choices": [
+              "To composite layers using LIVRPS",
+              "To register and lazily load plugins based on plugInfo.json metadata",
+              "To render scenes with a rasterizer",
+              "To validate schema property types"
+            ],
+            "answer": 1,
+            "explain": "The <code>Plug</code> library is USD's plugin framework: it discovers plugins from <code>plugInfo.json</code> files and loads their libraries on demand."
+          },
+          {
+            "type": "mc",
+            "kind": "Plugin path",
+            "q": "Which environment variable tells USD which additional directories to scan for plugInfo.json files?",
+            "choices": [
+              "PXR_PLUGINPATH_NAME",
+              "USD_PLUGIN_DIR",
+              "PXR_AR_DEFAULT",
+              "LD_LIBRARY_PATH"
+            ],
+            "answer": 0,
+            "explain": "<code>PXR_PLUGINPATH_NAME</code> lists extra directories the <code>Plug</code> registry searches for <code>plugInfo.json</code>, supplementing the default install-based search paths."
+          },
+          {
+            "type": "mc",
+            "kind": "File formats",
+            "q": "To add support for reading a custom file format into USD scene description, which base class do you subclass?",
+            "choices": [
+              "UsdStage",
+              "SdfFileFormat",
+              "HdRenderDelegate",
+              "UsdSchemaBase"
+            ],
+            "answer": 1,
+            "explain": "A file-format plugin subclasses <code>SdfFileFormat</code>, implementing read/write so USD can treat the custom format as a layer."
+          },
+          {
+            "type": "mc",
+            "kind": "Dynamic payloads",
+            "q": "What characterizes a dynamic (procedural) payload in USD?",
+            "choices": [
+              "It caches geometry to disk permanently",
+              "It uses a dynamic file-format plugin whose generated scene content depends on file-format arguments",
+              "It disables composition",
+              "It only works with .usdz archives"
+            ],
+            "answer": 1,
+            "explain": "Dynamic payloads rely on a dynamic file-format plugin that procedurally generates scene description based on passed file-format arguments, enabling parameterized on-demand content."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "{\n  \"Plugins\": [{\n    \"Name\": \"myFmt\",\n    \"Type\": \"library\",\n    \"LibraryPath\": \"myFmt.so\",\n    \"Info\": {\n      \"SdfFileFormat\": {\n        \"myFmt\": {\n          \"bases\": [\"SdfFileFormat\"],\n          \"extensions\": [\"myf\"],\n          \"formatId\": \"myFmt\"\n        }\n      }\n    }\n  }]\n}",
+            "q": "What does this plugInfo.json register?",
+            "choices": [
+              "A typed schema for prims of type myFmt",
+              "A file-format plugin that handles the .myf extension via an SdfFileFormat subclass",
+              "A Hydra scene-index filter",
+              "A new Kind called myf"
+            ],
+            "answer": 1,
+            "explain": "The <code>SdfFileFormat</code> Info block with <code>extensions: [\"myf\"]</code> registers a file-format plugin, so USD routes <code>.myf</code> files to this <code>SdfFileFormat</code> subclass."
+          },
+          {
+            "type": "mc",
+            "kind": "Read the code",
+            "code": "{\n  \"Plugins\": [{\n    \"Name\": \"myKinds\",\n    \"Type\": \"resource\",\n    \"Info\": {\n      \"Kinds\": {\n        \"vehicle\": { \"baseKind\": \"model\" }\n      }\n    }\n  }]\n}",
+            "q": "What does this plugInfo.json accomplish?",
+            "choices": [
+              "It registers a new render delegate",
+              "It extends the Kind registry with a 'vehicle' kind whose base kind is 'model'",
+              "It defines a file format for vehicles",
+              "It creates a codeless schema"
+            ],
+            "answer": 1,
+            "explain": "Kinds are extensible through plugInfo; this declares a new kind <code>vehicle</code> derived from <code>model</code>, so prims can be tagged with it in the kind hierarchy."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "Hydra 2.0 scene-index plugins can filter or synthesize scene data as it flows through the Hydra pipeline.",
+            "answer": true,
+            "explain": "Scene-index plugins are inserted into the Hydra scene-index chain, where they can transform, filter, or generate scene data before it reaches render delegates."
+          },
+          {
+            "type": "tf",
+            "kind": "True or False",
+            "q": "USD loads every registered plugin's shared library immediately at startup, before any of its types are requested.",
+            "answer": false,
+            "explain": "The <code>Plug</code> system loads plugin libraries lazily; it reads lightweight <code>plugInfo.json</code> metadata up front and only loads a library when one of its types is actually needed."
+          },
+          {
+            "type": "type",
+            "kind": "Type the answer",
+            "q": "A file-format plugin is created by subclassing the Sdf class named Sdf____Format.",
+            "sub": "One word.",
+            "answer": [
+              "File",
+              "file"
+            ],
+            "explain": "File-format plugins subclass <code>SdfFileFormat</code>, implementing reading/writing so USD can consume the format as a layer."
+          },
+          {
+            "type": "pairs",
+            "kind": "Match the pairs",
+            "q": "Match each extensibility mechanism to what it provides.",
+            "sub": "Tap a term, then its match.",
+            "pairs": [
+              [
+                "SdfFileFormat plugin",
+                "Support for reading/writing a custom file format"
+              ],
+              [
+                "Dynamic payload",
+                "Procedurally generated scene from file-format arguments"
+              ],
+              [
+                "Scene-index plugin",
+                "Filters or synthesizes data in the Hydra pipeline"
+              ]
+            ],
+            "explain": "File-format plugins add format support, dynamic payloads generate content procedurally, and scene-index plugins transform data within Hydra."
+          }
+        ]
+      }
+    ]
   }
 ];
 //__CURR_END__
@@ -5110,8 +6929,16 @@ const EXAMS = [
   {id:"cp1",  title:"Checkpoint 1", subtitle:"Units 1–3", afterUnit:2, units:[0,1,2],          count:12, seconds:5*60,  xp:80,  icon:"📝"},
   {id:"cp2",  title:"Checkpoint 2", subtitle:"Units 1–6", afterUnit:5, units:[0,1,2,3,4,5],     count:15, seconds:7*60,  xp:120, icon:"📝"},
   {id:"cp3",  title:"Checkpoint 3", subtitle:"Units 1–9", afterUnit:8, units:[0,1,2,3,4,5,6,7,8],count:18, seconds:9*60,  xp:160, icon:"📝"},
-  {id:"final",title:"Final Exam",   subtitle:"All 10 units", afterUnit:9, units:[0,1,2,3,4,5,6,7,8,9], count:40, seconds:60*60, xp:400, icon:"🎓", final:true},
+  // Retuned to mirror the real NCP-OUSD exam: 65 questions / 120 minutes, sampled by
+  // unit exam-weight across all 14 units. Lives at the end of Section 2.
+  {id:"final",title:"Final Exam", subtitle:"Exam simulation · all units", afterUnit:13,
+   units:[0,1,2,3,4,5,6,7,8,9,10,11,12,13], count:65, seconds:120*60, xp:600, icon:"🎓", final:true, weighted:true},
 ];
+
+const SECTIONS = {
+  1:{title:"Section 1 · Foundations & Core Concepts", sub:"How OpenUSD works — the building blocks"},
+  2:{title:"Section 2 · Developer & Production", sub:"NCP-OUSD exam domains: debugging, data exchange, pipelines, customization"},
+};
 
 /* ============================================================
    Accounts + per-user state (all local, no server)
@@ -5471,7 +7298,11 @@ function renderHome(){
     </div>
   </div>`;
 
+  let lastSection=0;
   CURRICULUM.forEach((u,ui)=>{
+    const sec=u.section||1;
+    if(sec!==lastSection){ lastSection=sec; const S2=SECTIONS[sec];
+      if(S2) html+=`<div class="path-section"><h2>${S2.title}</h2><p>${S2.sub}</p></div>`; }
     const totalDone=u.lessons.filter((l,li)=>isCompleted(ui+"-"+li)).length;
     html+=`<div class="unit-head" style="background:linear-gradient(135deg, ${u.color}, ${shade(u.color,-18)})">
         <div><h2>${u.title}</h2><p>${u.subtitle}</p></div>
@@ -5564,7 +7395,10 @@ function renderStudy(){
   hideAllScreens(); el("study").classList.remove("hidden"); showNav("study");
   let html=`<div class="section-label">📖 Study notes</div>
     <div class="empty-card" style="text-align:left">Quick tips for every lesson. Read before you start, or revisit anytime.</div>`;
+  let lastSec=0;
   CURRICULUM.forEach((u,ui)=>{
+    const sec=u.section||1;
+    if(sec!==lastSec){ lastSec=sec; const S2=SECTIONS[sec]; if(S2) html+=`<div class="path-section study"><h2>${S2.title}</h2></div>`; }
     html+=`<div class="section-label">${esc(u.title)}</div>`;
     u.lessons.forEach((l,li)=>{
       const key=ui+"-"+li; if(!(l.notes&&l.notes.length)) return;
@@ -5662,12 +7496,25 @@ function startExamTimer(){
   },1000);
 }
 function stopExamTimer(){ if(examTimer){ clearInterval(examTimer); examTimer=null; } }
+function buildExamPool(ex){
+  if(ex.weighted){
+    // repeat each unit's question ids by its exam weight, shuffle, take unique up to count
+    const bag=[];
+    ex.units.forEach(ui=>{ const w=CURRICULUM[ui].weight||1;
+      CURRICULUM[ui].lessons.forEach((l,li)=>l.questions.forEach((q,qi)=>{ for(let k=0;k<w;k++) bag.push(ui+"-"+li+"-"+qi); })); });
+    shuffle(bag);
+    const seen=new Set(), ids=[];
+    for(const id of bag){ if(!seen.has(id)){ seen.add(id); ids.push(id); if(ids.length>=ex.count) break; } }
+    return ids;
+  }
+  const pool=[];
+  ex.units.forEach(ui=>CURRICULUM[ui].lessons.forEach((l,li)=>l.questions.forEach((q,qi)=>pool.push(ui+"-"+li+"-"+qi))));
+  return shuffle(pool).slice(0, Math.min(ex.count, pool.length));
+}
 function startExam(id){
   const ex=EXAMS.find(e=>e.id===id); if(!ex) return;
   if(!examUnlocked(ex)){ showToast("Complete the units first to unlock this exam 🔒"); return; }
-  const pool=[];
-  ex.units.forEach(ui=>CURRICULUM[ui].lessons.forEach((l,li)=>l.questions.forEach((q,qi)=>pool.push(ui+"-"+li+"-"+qi))));
-  const ids=shuffle(pool).slice(0, Math.min(ex.count, pool.length));
+  const ids=buildExamPool(ex);
   const qs=ids.map(id=>({...ALL_Q[id].q}));
   L={exam:true, examId:id, ex, qs, i:0, correct:0, wrong:0, started:Date.now(), selected:null, answered:false, title:ex.title, timeLeft:ex.seconds};
   hideAllScreens(); hideNav();

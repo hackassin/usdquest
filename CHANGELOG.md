@@ -2,6 +2,18 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.5.0] — 2026-07-02
+
+### Added
+- **Two-section curriculum** aligned to the NVIDIA NCP-OUSD exam blueprint.
+  - **Section 1 · Foundations & Core Concepts** — the original 10 units (unchanged).
+  - **Section 2 · Developer & Production** — 4 new units closing the exam-domain gaps:
+    **Debugging & Troubleshooting**, **Data Exchange**, **Pipeline Development**, **Customizing USD**.
+- Now **14 units · 43 lessons · 430 questions** (each new lesson has 10 questions + study notes).
+- **Retuned Final Exam** at the end of Section 2: **65 questions / 120 minutes**, sampled by
+  domain weight to mirror the real exam.
+- Section headers on the learning path and in the Study tab.
+
 ## [1.4.0] — 2026-07-02
 
 ### Added

@@ -13,7 +13,8 @@ Open it on desktop or phone, create an account, and start learning. On mobile yo
 
 ## ✨ Features
 
-- **10 units · 31 lessons · 310 questions** spanning OpenUSD foundations → Omniverse production
+- **14 units · 43 lessons · 430 questions** in two sections — Section 1 (foundations & core concepts) and Section 2 (developer & production: debugging, data exchange, pipelines, customizing USD), aligned to the NVIDIA NCP-OUSD exam domains
+- **Timed exams** — checkpoint exams between unit blocks and a **1-hour, 65-question Final Exam** (domain-weighted) with a scored certificate
   (stages & layers, prims, composition/LIVRPS, schemas, Hydra, lighting, physics, animation, MDL…).
 - **Gamified learning** — XP, daily streaks, 5 hearts (regenerating), per-lesson results, and a
   👑 boss lesson. Questions and answer choices **shuffle every attempt** so repeats stay fresh.
