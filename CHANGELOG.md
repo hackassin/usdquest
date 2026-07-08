@@ -2,6 +2,20 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.7.0] — 2026-07-02
+
+### Added
+- **Section 3 · Practice Exams** — 5 full timed simulations (65 questions / 120 minutes each),
+  drawing refreshed questions from the whole curriculum plus a new **106-question practice bank**
+  weighted toward Composition/Kind/LIVERPS per the exam blueprint.
+- **Multi-select ("Select 2/3") questions** — a new checkbox question type, used throughout the
+  practice bank; graded on the exact set.
+- **Elaborative exam feedback** — after any exam, a per-domain performance breakdown plus ranked
+  **focus areas** with concrete, domain-specific study guidance.
+- **Chapter deep-dives** (Study tab) — richer overviews with **animated GIF demos** (timeSamples
+  interpolation, LIVERPS strength ordering, value resolution) and worked example questions with
+  reveal-able explanations.
+
 ## [1.6.0] — 2026-07-02
 
 ### Added
