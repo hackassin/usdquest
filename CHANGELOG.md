@@ -2,6 +2,18 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.7.1] — 2026-07-02
+
+### Fixed
+- **Code snippets now render USD paths correctly** — snippets are HTML-escaped, so prim
+  paths / arc targets like `</World/Foo>` and `rel material:binding = </Materials/metal>`
+  no longer get eaten by the HTML parser (they were showing blank).
+- **Lenient type-answer grading** — answers now ignore case, punctuation, namespaces, and
+  parentheses and accept the key term with extra words, so e.g. `based rendering` and
+  `Sdf.Layer.FindOrOpen()` are accepted; symbol answers like `/` still grade correctly.
+- Reworked a list-editing practice question to a clean `prepend`/`append` example
+  (removed a contradictory explicit-`=` case).
+
 ## [1.7.0] — 2026-07-02
 
 ### Added
