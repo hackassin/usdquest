@@ -7545,7 +7545,7 @@ function renderDeepDive(id){
       <h2 style="clear:both;padding-top:6px">${d.icon} ${esc(d.title)}</h2></div>`;
   if(d.gif) html+=`<img class="dd-gif" src="${d.gif}" alt="${esc(d.title)} demo" loading="lazy"/>`;
   d.overview.forEach(p=>html+=`<p class="dd-p">${p}</p>`);
-  if(d.code) html+=`<pre class="code">${d.code}</pre>`;
+  if(d.code) html+=`<pre class="code">${esc(d.code)}</pre>`;
   html+=`<div class="section-label">Example questions</div>`;
   d.examples.forEach((ex,i)=>{
     html+=`<div class="dd-ex"><div class="dd-q"><b>Q${i+1}.</b> ${ex.q}</div>
@@ -7796,7 +7796,7 @@ function renderQuestion(){
 
   let body=`<div class="q-kind">${q.kind||"Question"}</div><h2 class="q-text">${q.q}</h2>`;
   if(q.sub) body+=`<p class="q-sub">${q.sub}</p>`;
-  if(q.code) body+=`<pre class="code">${q.code}</pre>`;
+  if(q.code) body+=`<pre class="code">${esc(q.code)}</pre>`;
 
   if(q.type==="mc"){
     // build shuffled choice order, remembering correct index
