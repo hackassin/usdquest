@@ -7902,6 +7902,21 @@ function completePairs(){
   showFeedback(true,q);
 }
 
+// lenient grading for type-the-answer: ignore case, punctuation, namespaces,
+// parentheses and extra words — accept if the key token is present either way.
+function typeAnswerMatches(user, answers){
+  const raw=s=>String(s==null?"":s).trim().toLowerCase();
+  const norm=s=>raw(s).replace(/[^a-z0-9]+/g,"");
+  const ru=raw(user), u=norm(user);
+  return (answers||[]).some(a=>{
+    if(ru && ru===raw(a)) return true;             // exact match (handles symbols like "/")
+    const n=norm(a); if(!n || !u) return false;
+    if(u===n) return true;
+    if(n.length>=4 && u.includes(n)) return true;  // user typed extra words but included the key term
+    if(u.length>=4 && n.includes(u)) return true;  // user typed a shorter valid form
+    return false;
+  });
+}
 function evaluate(q){
   L.answered=true;
   let correct=false, userText=null;
@@ -7925,9 +7940,8 @@ function evaluate(q){
       else if(pos===L.selected) c.classList.add("wrong");
     });
   } else if(q.type==="type"){
-    const inp=el("typedIn"); userText=inp.value.trim().toLowerCase();
-    inp.disabled=true;
-    correct = q.answer.map(a=>a.toLowerCase()).includes(userText);
+    const inp=el("typedIn"); userText=inp.value; inp.disabled=true;
+    correct = typeAnswerMatches(userText, q.answer);
     inp.style.borderColor = correct? "var(--green)":"var(--red)";
   } else if(q.type==="multi"){
     const chosen=new Set([...(L._multi||[])].map(p=>q._order[p]));  // original indices
