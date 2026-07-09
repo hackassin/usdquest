@@ -377,6 +377,18 @@
   .ex-take{background:rgba(118,185,0,.10);border:1px solid #33501a;border-radius:12px;padding:13px 15px;
     font-size:13.5px;line-height:1.55;color:#d4e6da;margin:6px 0 4px}
   .ex-take b{color:var(--green-l)}
+  /* interactive 3D viewer */
+  .viewer3d{position:relative;width:100%;height:300px;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);background:radial-gradient(circle at 50% 25%, #16303a, #0b161b);
+    margin:6px 0 12px;touch-action:none;cursor:grab}
+  .viewer3d:active{cursor:grabbing}
+  .viewer3d canvas{display:block}
+  .v3d-hint{position:absolute;top:8px;left:10px;font-size:11px;color:var(--muted);pointer-events:none;z-index:2}
+  .v3d-bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;
+    padding:8px 10px;background:rgba(11,20,24,.72);backdrop-filter:blur(4px)}
+  .v3d-play{flex:none;background:var(--green);color:#06140a;border-radius:8px;width:36px;height:28px;font-size:13px;font-weight:800}
+  .v3d-slider{flex:1;accent-color:var(--green)}
+  .v3d-read{flex:none;font-family:'Cascadia Code',Consolas,monospace;font-size:12px;color:var(--gold);min-width:104px;text-align:right}
 
   /* ---------- Section banners ---------- */
   .path-section{margin:30px 0 6px;padding:16px 18px;border-radius:var(--radius);text-align:center;
@@ -569,6 +581,8 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Three.js (for the interactive 3D concept viewer). Falls back to GIFs if unreachable. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- Supabase JS SDK (for optional cloud sync). Falls back to local accounts if unreachable. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -7471,6 +7485,7 @@ function hideAllScreens(){
   el("deepdive").classList.add("hidden");
   lessonEl.classList.remove("active");
   resultsEl.classList.remove("active");
+  disposeViewer();
 }
 function showNav(active){
   el("nav").classList.remove("hidden");
@@ -7502,7 +7517,7 @@ function hideNotes(){ el("notesModal").classList.remove("show"); }
    worked example questions (grounded in the OpenUSD curriculum).
    ============================================================ */
 const DEEPDIVES = {
-  timesamples:{ title:"Time Samples & Interpolation", icon:"⏱️", gif:"assets/timesamples.gif",
+  timesamples:{ title:"Time Samples & Interpolation", icon:"⏱️", gif:"assets/timesamples.gif", scene3d:"timesamples",
     overview:[
       "An attribute can hold a single <b>default</b> value, or many <b>timeSamples</b> — one value per <code>timeCode</code>. When you ask for a value at a time that has no sample, USD <b>interpolates</b>: linearly for interpolatable types (floats, points, matrices…) and <b>held</b> (step) for non-interpolatable types (tokens, ints, strings).",
       "The stage's <code>timeCodesPerSecond</code> maps time codes to seconds, and <code>startTimeCode</code>/<code>endTimeCode</code> mark the playable range. A <b>layer offset</b> can shift and scale a referenced layer's time, so many prims can reuse one animation at different offsets.",
@@ -7551,7 +7566,9 @@ function renderDeepDive(id){
   let html=`<div class="report-head" style="text-align:left">
       <button class="report-back" onclick="renderStudy()">← Study</button>
       <h2 style="clear:both;padding-top:6px">${d.icon} ${esc(d.title)}</h2></div>`;
-  if(d.gif) html+=`<img class="dd-gif" src="${d.gif}" alt="${esc(d.title)} demo" loading="lazy"/>`;
+  const use3dD = d.scene3d && typeof THREE!=="undefined";
+  if(use3dD) html+=`<div class="viewer3d" data-scene="${d.scene3d}"><div class="v3d-hint">drag to orbit · scroll / pinch to zoom</div></div>`;
+  else if(d.gif) html+=`<img class="dd-gif" src="${d.gif}" alt="${esc(d.title)} demo" loading="lazy"/>`;
   d.overview.forEach(p=>html+=`<p class="dd-p">${p}</p>`);
   if(d.code) html+=`<pre class="code">${esc(d.code)}</pre>`;
   html+=`<div class="section-label">Example questions</div>`;
@@ -7560,6 +7577,7 @@ function renderDeepDive(id){
       <details><summary>Show answer</summary><div class="dd-a"><b>✅ ${esc(ex.a)}</b><br>${ex.e}</div></details></div>`;
   });
   el("deepdive").innerHTML=html;
+  mountViewerIn(el("deepdive"), d.gif);
 }
 
 const EXERCISES = {
@@ -7571,7 +7589,7 @@ const EXERCISES = {
       {t:"Write it to disk.", code:"stage.Save()"}],
     takeaway:"The stage is your live, composed view; edits go to the <b>edit target</b> (the root layer by default) until you <code>Save()</code> or <code>Export()</code>. A <code>defaultPrim</code> lets others reference the asset without knowing its internal names.",
     example:{q:"Which metadata lets another stage reference this asset without naming an internal prim?",a:"defaultPrim",e:"When a layer is referenced without a target path, USD uses its <code>defaultPrim</code>."}},
-  references:{ title:"Reference assets to build a scene", icon:"🔗", domain:"Composition", gif:"assets/references.gif",
+  references:{ title:"Reference assets to build a scene", icon:"🔗", domain:"Composition", gif:"assets/references.gif", scene3d:"references",
     intro:"A <b>reference</b> pulls another asset's prims onto a prim, so one source asset can be reused many times — the backbone of content aggregation.",
     steps:[
       {t:"Define a prim to host each copy, then add the reference (relative, POSIX path for portability).", code:"b1 = UsdGeom.Xform.Define(stage, \"/World/skyscraper_01\")\nb1.GetPrim().GetReferences().AddReference(\"./assets/skyscraperA.usd\")"},
@@ -7621,14 +7639,14 @@ const EXERCISES = {
       {t:"Build an assembly that references components.", code:"Usd.ModelAPI(world).SetKind(Kind.Tokens.assembly)\nbldg = stage.DefinePrim(\"/World/Bldg_01\")\nbldg.GetReferences().AddReference(\"./lrg_bldgF.usd\")"}],
     takeaway:"Leaf, publishable assets are <code>component</code>; aggregations are <code>assembly</code>/<code>group</code>. The model hierarchy must stay contiguous from the root.",
     example:{q:"Which kind marks a leaf-level, publishable asset?",a:"component",e:"Components are the leaves; assemblies/groups aggregate them."}},
-  sginstancing:{ title:"Scenegraph instancing", icon:"🧩", domain:"Content Aggregation", gif:"assets/instancing.gif",
+  sginstancing:{ title:"Scenegraph instancing", icon:"🧩", domain:"Content Aggregation", gif:"assets/instancing.gif", scene3d:"instancing",
     intro:"Mark identical, referenced components <b>instanceable</b> and USD shares a single <b>prototype</b> — a big memory and traversal win in large scenes.",
     steps:[
       {t:"Flag component prims as instanceable.", code:"for prim in stage.Traverse():\n    if Usd.ModelAPI(prim).GetKind() == Kind.Tokens.component:\n        prim.SetInstanceable(True)"},
       {t:"Understand the trade-off: an instance's descendants become read-only <b>instance proxies</b>.", code:"# To edit internals: override the instance root, or\n# prim.SetInstanceable(False)  # de-instance this one"}],
     takeaway:"Instances that compose <b>identically</b> share one prototype. You can still override the instance root prim — just not its internals through the instance.",
     example:{q:"What must be true for two prims to share a prototype?",a:"identical composition",e:"Only identically-composing instanceable prims can share a prototype."}},
-  ptinstancing:{ title:"Point-instancer scatter", icon:"✨", domain:"Content Aggregation", gif:"assets/pointscatter.gif",
+  ptinstancing:{ title:"Point-instancer scatter", icon:"✨", domain:"Content Aggregation", gif:"assets/pointscatter.gif", scene3d:"pointscatter",
     intro:"A <b>UsdGeomPointInstancer</b> scatters thousands of prototype copies from plain arrays — far lighter than authoring thousands of prims.",
     steps:[
       {t:"Define the instancer and reference assets as prototypes.", code:"pi = UsdGeom.PointInstancer.Define(stage, \"/World/Scatter\")\nbox = stage.DefinePrim(\"/World/Scatter/Prototypes/Box\")\nbox.GetReferences().AddReference(\"./CubeBox.usd\")\npi.CreatePrototypesRel().SetTargets([box.GetPath()])"},
@@ -7651,7 +7669,9 @@ function renderExercise(id){
       <button class="report-back" onclick="renderStudy()">← Study</button>
       <h2 style="clear:both;padding-top:6px">${x.icon} ${esc(x.title)}</h2>
       <span class="dd-tag">${esc(x.domain)}</span></div>`;
-  if(x.gif) html+=`<img class="dd-gif" src="${x.gif}" loading="lazy" alt="${esc(x.title)} demo"/>`;
+  const use3dX = x.scene3d && typeof THREE!=="undefined";
+  if(use3dX) html+=`<div class="viewer3d" data-scene="${x.scene3d}"><div class="v3d-hint">drag to orbit · scroll / pinch to zoom</div></div>`;
+  else if(x.gif) html+=`<img class="dd-gif" src="${x.gif}" loading="lazy" alt="${esc(x.title)} demo"/>`;
   html+=`<p class="dd-p">${x.intro}</p>`;
   x.steps.forEach((s,i)=>{ html+=`<div class="ex-step"><div class="ex-num">Step ${i+1}</div><p class="dd-p">${s.t}</p>`+(s.code?`<pre class="code">${esc(s.code)}</pre>`:``)+`</div>`; });
   if(x.takeaway) html+=`<div class="ex-take"><b>💡 Takeaway.</b> ${x.takeaway}</div>`;
@@ -7660,6 +7680,7 @@ function renderExercise(id){
       <details><summary>Show answer</summary><div class="dd-a"><b>✅ ${esc(x.example.a)}</b><br>${x.example.e}</div></details></div>`;
   html+=`<p class="report-note">Adapted from the <b>NVIDIA Learn OpenUSD</b> course exercises (Apache-2.0). Snippets are illustrative, written for study.</p>`;
   el("deepdive").innerHTML=html;
+  mountViewerIn(el("deepdive"), x.gif);
 }
 
 function renderStudy(){
@@ -8593,6 +8614,95 @@ async function saveUsername(){
   m.textContent="Saved!"; m.className="auth-msg ok"; refreshTop();
 }
 function logoutConfirm(){ if(confirm("Log out? Your progress is saved to this account.")) logout(); }
+
+/* ============================================================
+   Interactive 3D concept viewer (Three.js). Procedural scenes,
+   custom orbit/zoom, disposed on navigation. Falls back to GIFs.
+   ============================================================ */
+let _v3d=null;
+function disposeViewer(){
+  if(_v3d){ try{ cancelAnimationFrame(_v3d.raf); window.removeEventListener("resize",_v3d.onResize);
+    _v3d.renderer.dispose(); if(_v3d.renderer.domElement.parentNode) _v3d.renderer.domElement.parentNode.removeChild(_v3d.renderer.domElement); }catch(e){}
+    _v3d=null; }
+}
+function mountViewerIn(host, gifFallback){
+  const v=host.querySelector(".viewer3d"); if(!v) return;
+  try{ if(!mountViewer(v.dataset.scene, v)) throw new Error("no-gl"); }
+  catch(e){ if(gifFallback) v.outerHTML=`<img class="dd-gif" src="${gifFallback}" loading="lazy" alt="demo"/>`;
+            else v.innerHTML='<div class="v3d-hint">3D preview unavailable here.</div>'; }
+}
+function mountViewer(sceneId, host){
+  disposeViewer();
+  if(typeof THREE==="undefined" || !host) return false;
+  const W=host.clientWidth||360, H=host.clientHeight||300;
+  const renderer=new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); renderer.setSize(W,H);
+  host.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45, W/H, 0.1, 500);
+  scene.add(new THREE.HemisphereLight(0xcfe8ff, 0x14240c, 1.05));
+  const dir=new THREE.DirectionalLight(0xffffff,1.0); dir.position.set(8,14,6); scene.add(dir);
+  scene.add(new THREE.GridHelper(48, 24, 0x2a4a2a, 0x18303a));
+  const conf=buildScene(sceneId, scene);
+  let az=conf.az!=null?conf.az:0.9, pol=1.05, rad=conf.rad||20, tgt=new THREE.Vector3(0,conf.ty||2,0);
+  function applyCam(){ camera.position.set(tgt.x+rad*Math.sin(pol)*Math.sin(az), tgt.y+rad*Math.cos(pol), tgt.z+rad*Math.sin(pol)*Math.cos(az)); camera.lookAt(tgt); }
+  applyCam();
+  const dom=renderer.domElement; dom.style.touchAction="none"; let drag=false,px=0,py=0;
+  dom.addEventListener("pointerdown",e=>{drag=true;px=e.clientX;py=e.clientY;try{dom.setPointerCapture(e.pointerId);}catch(_){}});
+  dom.addEventListener("pointermove",e=>{ if(!drag)return; az-=(e.clientX-px)*0.01; pol=Math.max(0.25,Math.min(1.48,pol-(e.clientY-py)*0.008)); px=e.clientX;py=e.clientY; applyCam(); });
+  window.addEventListener("pointerup",()=>{drag=false;});
+  dom.addEventListener("wheel",e=>{ e.preventDefault(); rad=Math.max(7,Math.min(46,rad+(e.deltaY>0?2:-2))); applyCam(); },{passive:false});
+  const state={renderer, raf:0, playing:true, frame:1};
+  state.onResize=()=>{ const w=host.clientWidth||W,h=host.clientHeight||H; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); };
+  window.addEventListener("resize",state.onResize);
+  // optional timeline UI (timeSamples)
+  if(conf.timeline){
+    const bar=document.createElement("div"); bar.className="v3d-bar";
+    bar.innerHTML='<button class="v3d-play">⏸</button><input class="v3d-slider" type="range" min="1" max="48" value="1"/><span class="v3d-read"></span>';
+    host.appendChild(bar);
+    const play=bar.querySelector(".v3d-play"), sl=bar.querySelector(".v3d-slider"), rd=bar.querySelector(".v3d-read");
+    play.onclick=()=>{ state.playing=!state.playing; play.textContent=state.playing?"⏸":"▶"; };
+    sl.oninput=()=>{ state.playing=false; play.textContent="▶"; state.frame=+sl.value; };
+    state.onFrame=(f,frac)=>{ sl.value=Math.round(f); rd.textContent="t="+Math.round(f)+"  x="+(frac*10).toFixed(1); };
+  }
+  const clock=new THREE.Clock();
+  (function loop(){ state.raf=requestAnimationFrame(loop); const dt=Math.min(0.05,clock.getDelta()); if(conf.update) conf.update(dt,state); renderer.render(scene,camera); })();
+  _v3d=state; return true;
+}
+function _mat(c,rough){ return new THREE.MeshStandardMaterial({color:c, roughness:rough==null?0.6:rough, metalness:0.05}); }
+function buildScene(id, scene){
+  if(id==="timesamples"){
+    const box=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.8,1.8), _mat(0x76b900,0.45)); box.position.y=1; scene.add(box);
+    const gm=new THREE.MeshStandardMaterial({color:0xffc800, transparent:true, opacity:0.22, wireframe:true});
+    [-5,5].forEach(x=>{ const g=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.8,1.8),gm); g.position.set(x,1,0); scene.add(g); });
+    return { rad:20, ty:1.4, timeline:true, update(dt,st){ if(st.playing){ st.frame+=dt*14; if(st.frame>48) st.frame=1; }
+      const f=Math.max(1,Math.min(48,st.frame)), frac=(f-1)/47; box.position.x=-5+frac*10; if(st.onFrame) st.onFrame(f,frac); } };
+  }
+  if(id==="references"){
+    const g=new THREE.Group(); const m=_mat(0x8fd400,0.6);
+    for(let i=0;i<4;i++){ const b=new THREE.Group();
+      const base=new THREE.Mesh(new THREE.BoxGeometry(2.4,6,2.4),m); base.position.y=3;
+      const top=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.6,1.4),m); top.position.y=6.8;
+      b.add(base,top); b.position.x=-10.5+i*7; g.add(b); }
+    scene.add(g); return { rad:26, ty:3.4, update(dt){ g.rotation.y+=dt*0.18; } };
+  }
+  if(id==="instancing"){
+    const side=14, N=side*side, im=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,1.3,1.3), _mat(0x76b900), N);
+    const mm=new THREE.Matrix4(); let i=0; for(let x=0;x<side;x++) for(let z=0;z<side;z++){ mm.setPosition(x-side/2+0.5,0.65,z-side/2+0.5); im.setMatrixAt(i++,mm); }
+    im.instanceMatrix.needsUpdate=true; scene.add(im);
+    return { rad:26, ty:0.5, update(dt){ im.rotation.y+=dt*0.12; } };
+  }
+  if(id==="pointscatter"){
+    const N=110, R=15; const a=new THREE.InstancedMesh(new THREE.BoxGeometry(1.1,1.1,1.1),_mat(0x8fd400),N);
+    const b=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.6,0.6,1.2,10),_mat(0x1cb0f6),N);
+    const mm=new THREE.Matrix4(),q=new THREE.Quaternion(),up=new THREE.Vector3(0,1,0),sc=new THREE.Vector3(1,1,1),p=new THREE.Vector3(); let ia=0,ib=0;
+    for(let k=0;k<N*2;k++){ const x=(Math.random()-0.5)*R*2, z=(Math.random()-0.5)*R*2; q.setFromAxisAngle(up,Math.random()*6.28); p.set(x,0.6,z); mm.compose(p,q,sc);
+      if(k%2===0&&ia<N) a.setMatrixAt(ia++,mm); else if(ib<N) b.setMatrixAt(ib++,mm); }
+    a.count=ia; b.count=ib; a.instanceMatrix.needsUpdate=true; b.instanceMatrix.needsUpdate=true; scene.add(a,b);
+    return { rad:30, ty:0.5, update(dt){ a.rotation.y+=dt*0.1; b.rotation.y+=dt*0.1; } };
+  }
+  return { rad:20, ty:2, update(){} };
+}
 
 window.startLesson=startLesson; window.startPractice=startPractice; window.selectChoice=selectChoice;
 window.renderHome=renderHome; window.renderSocial=renderSocial; window.renderProfile=renderProfile;

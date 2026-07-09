@@ -2,6 +2,16 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.9.0] — 2026-07-10
+
+### Added
+- **Interactive 3D viewer** (Three.js) in the Study tab — real, orbit/zoom WebGL scenes that
+  replace the static GIFs where available:
+  - **Time Samples** deep-dive: a cube keyframing between t=1 and t=48 with a **scrubber + play/pause**.
+  - **References**, **Scenegraph instancing** (InstancedMesh grid), and **Point-instancer scatter** exercises.
+- Self-contained (Three.js via CDN); gracefully falls back to the GIFs if WebGL/CDN is unavailable,
+  and disposes the render loop when you navigate away.
+
 ## [1.8.0] — 2026-07-10
 
 ### Added
