@@ -2,6 +2,17 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.10.0] — 2026-07-10
+
+### Added
+- **More interactive 3D viewer scenes** with live controls:
+  - **Variants** — toggle a street lamp on/off.
+  - **Payloads** — load/unload a building (geometry ↔ bounding box).
+  - **Value resolution / sublayers** — "remove strongest" to watch the resolved opinion change.
+  - **Model kinds** — an assembly aggregating component prims.
+- The viewer now covers timeSamples, references, instancing, point-scatter, variants,
+  payloads, value resolution, and kinds.
+
 ## [1.9.0] — 2026-07-10
 
 ### Added

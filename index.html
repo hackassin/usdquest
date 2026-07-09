@@ -389,6 +389,8 @@
   .v3d-play{flex:none;background:var(--green);color:#06140a;border-radius:8px;width:36px;height:28px;font-size:13px;font-weight:800}
   .v3d-slider{flex:1;accent-color:var(--green)}
   .v3d-read{flex:none;font-family:'Cascadia Code',Consolas,monospace;font-size:12px;color:var(--gold);min-width:104px;text-align:right}
+  .v3d-btn{flex:none;background:var(--green);color:#06140a;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:800;letter-spacing:.3px}
+  .v3d-read2{flex:1;font-size:12px;color:var(--gold);font-weight:700;text-align:right}
 
   /* ---------- Section banners ---------- */
   .path-section{margin:30px 0 6px;padding:16px 18px;border-radius:var(--radius);text-align:center;
@@ -7538,7 +7540,7 @@ const DEEPDIVES = {
        a:"The local opinion", e:"<b>Local</b> is the strongest arc in LIVERPS, so the direct opinion beats the referenced one."},
       {q:"You author a 'base look' you want every variant/reference to be able to override. Which arc fits?",
        a:"Specializes", e:"<b>Specializes</b> is the weakest arc, so its opinions act as a fallback that any stronger arc refines."}]},
-  valueres:{ title:"Value Resolution & Opinions", icon:"🧅", gif:"assets/valueres.gif",
+  valueres:{ title:"Value Resolution & Opinions", icon:"🧅", gif:"assets/valueres.gif", scene3d:"sublayers",
     overview:[
       "USD keeps <b>all</b> opinions for a property across layers/arcs and computes a single resolved value on demand — it never destructively overwrites weaker opinions.",
       "The strongest opinion wins; remove it and the next-strongest simply <b>shows through</b>. This non-destructive model is what makes layered, multi-user pipelines and clean overrides possible.",
@@ -7596,14 +7598,14 @@ const EXERCISES = {
       {t:"Reuse the same asset under another prim and place it with a transform.", code:"b2 = UsdGeom.Xform.Define(stage, \"/World/skyscraper_02\")\nb2.GetPrim().GetReferences().AddReference(\"./assets/skyscraperA.usd\")\nUsdGeom.XformCommonAPI(b2).SetTranslate(Gf.Vec3d(180, 0, 0))"}],
     takeaway:"Referencing the same file under several prims reuses <b>one</b> source asset; give each host prim a unique transform to lay out a city. Edit the source once and every reference updates.",
     example:{q:"You reference the same building onto 20 prims. How many source files do you maintain?",a:"one",e:"All 20 prims share a single referenced asset; fixing the source fixes them all."}},
-  sublayers:{ title:"Compose with sublayers", icon:"🧅", domain:"Composition", gif:"assets/valueres.gif",
+  sublayers:{ title:"Compose with sublayers", icon:"🧅", domain:"Composition", gif:"assets/valueres.gif", scene3d:"sublayers",
     intro:"<b>Sublayers</b> stack layers into one <b>layer stack</b> that share the same namespace — ideal for department/override stacks and multi-user work. Earlier in the list = stronger.",
     steps:[
       {t:"Append sublayers to the root layer. The first entry is the strongest.", code:"root = stage.GetRootLayer()\nroot.subLayerPaths.append(\"./geometry.usd\")     # weaker\nroot.subLayerPaths.insert(0, \"./overrides.usd\")  # stronger (front)"},
       {t:"Point the edit target at a specific sublayer so your edits land there.", code:"layer = Sdf.Layer.FindOrOpen(\"./overrides.usd\")\nstage.SetEditTarget(layer)"}],
     takeaway:"Sublayers keep one namespace (unlike references, which encapsulate + re-root). When two sublayers set the same property, the one listed <b>first</b> wins.",
     example:{q:"Two sublayers set the same attribute. Which value resolves?",a:"the one listed first",e:"Earlier sublayers are stronger in the layer stack."}},
-  variants:{ title:"Author & switch a variant set", icon:"🎚️", domain:"Composition", gif:"assets/variants.gif",
+  variants:{ title:"Author & switch a variant set", icon:"🎚️", domain:"Composition", gif:"assets/variants.gif", scene3d:"variants",
     intro:"A <b>variant set</b> packages mutually-exclusive configurations behind one selectable switch (e.g. lights on/off, LOD high/low).",
     steps:[
       {t:"Add the variant set and its named variants on the prim.", code:"vset = prim.GetVariantSets().AddVariantSet(\"lights\")\nvset.AddVariant(\"on\")\nvset.AddVariant(\"off\")"},
@@ -7611,7 +7613,7 @@ const EXERCISES = {
       {t:"Set the selection the asset ships with.", code:"vset.SetVariantSelection(\"off\")"}],
     takeaway:"Only opinions authored within <code>GetVariantEditContext()</code> are captured under the variant; changing the selection recomposes that subtree.",
     example:{q:"Where must opinions be authored so they belong to a variant?",a:"inside GetVariantEditContext()",e:"The edit context scopes authored opinions into the active variant."}},
-  payloads:{ title:"Defer heavy data with payloads", icon:"📦", domain:"Composition", gif:"assets/payload.gif",
+  payloads:{ title:"Defer heavy data with payloads", icon:"📦", domain:"Composition", gif:"assets/payload.gif", scene3d:"payloads",
     intro:"A <b>payload</b> is a special reference you can load/unload on demand — open a massive scene fast and stream in only what you need.",
     steps:[
       {t:"Add a payload instead of a reference for heavy assets.", code:"prim = UsdGeom.Xform.Define(stage, \"/World/bldg_01\")\nprim.GetPrim().GetPayloads().AddPayload(\"./sm_bldgF.usd\")"},
@@ -7632,7 +7634,7 @@ const EXERCISES = {
       {t:"A local opinion overrides the specialized fallback.", code:"road.GetAttribute(\"osm:maxspeed\").Set(20)   # beats the specialized 30"}],
     takeaway:"Unlike inherits (strong), specialized opinions sit at the <b>bottom</b> of LIVERPS, so they behave as defaults that everything else refines.",
     example:{q:"Base via specializes = 30, local opinion = 20. Resolved value?",a:"20",e:"Local beats Specializes in LIVERPS, so 20 wins."}},
-  kind:{ title:"Model kinds & assemblies", icon:"🏷️", domain:"Content Aggregation",
+  kind:{ title:"Model kinds & assemblies", icon:"🏷️", domain:"Content Aggregation", scene3d:"kind",
     intro:"<code>kind</code> classifies a prim's role in the <b>model hierarchy</b>; assemblies aggregate components into larger deliverables.",
     steps:[
       {t:"Tag a leaf asset as a component.", code:"from pxr import Kind\nUsd.ModelAPI(prim).SetKind(Kind.Tokens.component)"},
@@ -8665,11 +8667,19 @@ function mountViewer(sceneId, host){
     sl.oninput=()=>{ state.playing=false; play.textContent="▶"; state.frame=+sl.value; };
     state.onFrame=(f,frac)=>{ sl.value=Math.round(f); rd.textContent="t="+Math.round(f)+"  x="+(frac*10).toFixed(1); };
   }
+  if(conf.controls) conf.controls(host, state);
   const clock=new THREE.Clock();
   (function loop(){ state.raf=requestAnimationFrame(loop); const dt=Math.min(0.05,clock.getDelta()); if(conf.update) conf.update(dt,state); renderer.render(scene,camera); })();
   _v3d=state; return true;
 }
 function _mat(c,rough){ return new THREE.MeshStandardMaterial({color:c, roughness:rough==null?0.6:rough, metalness:0.05}); }
+function addButtonBar(host){
+  const bar=document.createElement("div"); bar.className="v3d-bar";
+  const btn=document.createElement("button"); btn.className="v3d-btn";
+  const rd=document.createElement("span"); rd.className="v3d-read2";
+  bar.appendChild(btn); bar.appendChild(rd); host.appendChild(bar);
+  return { onClick:fn=>{ btn.onclick=()=>fn(); }, setLabel:s=>btn.textContent=s, setInfo:s=>rd.innerHTML=s };
+}
 function buildScene(id, scene){
   if(id==="timesamples"){
     const box=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.8,1.8), _mat(0x76b900,0.45)); box.position.y=1; scene.add(box);
@@ -8700,6 +8710,44 @@ function buildScene(id, scene){
       if(k%2===0&&ia<N) a.setMatrixAt(ia++,mm); else if(ib<N) b.setMatrixAt(ib++,mm); }
     a.count=ia; b.count=ib; a.instanceMatrix.needsUpdate=true; b.instanceMatrix.needsUpdate=true; scene.add(a,b);
     return { rad:30, ty:0.5, update(dt){ a.rotation.y+=dt*0.1; b.rotation.y+=dt*0.1; } };
+  }
+  if(id==="variants"){
+    const post=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,7,12), _mat(0x556065,0.7)); post.position.y=3.5; scene.add(post);
+    const arm=new THREE.Mesh(new THREE.BoxGeometry(3,0.3,0.3), _mat(0x556065,0.7)); arm.position.set(1,7,0); scene.add(arm);
+    const bulbMat=new THREE.MeshStandardMaterial({color:0x2a2a2a, emissive:0x000000, roughness:0.3});
+    const bulb=new THREE.Mesh(new THREE.SphereGeometry(0.75,18,18), bulbMat); bulb.position.set(2.4,6.7,0); scene.add(bulb);
+    const glow=new THREE.PointLight(0xffdd88,0,25); glow.position.copy(bulb.position); scene.add(glow);
+    function setLights(v){ bulbMat.color.set(v?0xffe08a:0x2a2a2a); bulbMat.emissive.set(v?0xffcc55:0x000000); glow.intensity=v?2.4:0; }
+    return { rad:20, ty:4, controls(host){ let on=true; setLights(true); const b=addButtonBar(host);
+        const refresh=()=>{ b.setLabel(on?"Turn off":"Turn on"); b.setInfo('lights = "'+(on?'on':'off')+'"'); };
+        b.onClick(()=>{ on=!on; setLights(on); refresh(); }); refresh(); }, update(){} };
+  }
+  if(id==="payloads"){
+    const grp=new THREE.Group(); const m=_mat(0x76b900,0.55);
+    grp.add(new THREE.Mesh(new THREE.BoxGeometry(4,7,4),m)).position.y=3.5;
+    for(let r=0;r<3;r++) for(let c=0;c<2;c++){ const w=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.8,0.12), _mat(0x0a161b,0.4)); w.position.set(-0.9+c*1.8, 2+r*1.8, 2.02); grp.add(w); }
+    scene.add(grp);
+    const bbox=new THREE.Mesh(new THREE.BoxGeometry(4,7,4), new THREE.MeshStandardMaterial({color:0x8aa1a8,wireframe:true,transparent:true,opacity:0.5})); bbox.position.y=3.5; scene.add(bbox);
+    function setLoaded(v){ grp.visible=v; bbox.visible=!v; }
+    return { rad:20, ty:3.5, controls(host){ let loaded=true; setLoaded(true); const b=addButtonBar(host);
+        const refresh=()=>{ b.setLabel(loaded?"Unload":"Load"); b.setInfo(loaded?"payload loaded":"unloaded (bbox only)"); };
+        b.onClick(()=>{ loaded=!loaded; setLoaded(loaded); refresh(); }); refresh(); },
+      update(dt){ grp.rotation.y+=dt*0.15; bbox.rotation.y+=dt*0.15; } };
+  }
+  if(id==="sublayers"){
+    const cols=[0xff5a5f,0x76b900,0x1cb0f6], names=["shot (strongest)","asset","base (weakest)"], slabs=[];
+    for(let i=0;i<3;i++){ const s=new THREE.Mesh(new THREE.BoxGeometry(7,1.2,7), new THREE.MeshStandardMaterial({color:cols[i],roughness:0.5,transparent:true,opacity:0.92})); s.position.y=5-i*1.7; scene.add(s); slabs.push(s); }
+    const resolved=new THREE.Mesh(new THREE.BoxGeometry(2.4,2.4,2.4), _mat(cols[0])); resolved.position.set(7.5,2.5,0); scene.add(resolved);
+    let removed=0; function apply(){ slabs.forEach((s,i)=>s.visible=i>=removed); resolved.material.color.set(cols[Math.min(removed,2)]); }
+    return { rad:26, ty:3, controls(host){ apply(); const b=addButtonBar(host);
+        b.onClick(()=>{ removed=(removed+1)%3; apply(); b.setInfo("resolved: "+names[Math.min(removed,2)]); });
+        b.setLabel("Remove strongest"); b.setInfo("resolved: "+names[0]); }, update(){} };
+  }
+  if(id==="kind"){
+    const asm=new THREE.Mesh(new THREE.BoxGeometry(13,7.5,6), new THREE.MeshStandardMaterial({color:0xffc800,wireframe:true,transparent:true,opacity:0.5})); asm.position.y=3.75; scene.add(asm);
+    const g=new THREE.Group(), m=_mat(0x76b900,0.6);
+    for(let i=0;i<4;i++){ const c=new THREE.Group(); const b=new THREE.Mesh(new THREE.BoxGeometry(1.8,4,1.8),m); b.position.y=2; const t=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),m); t.position.y=4.6; c.add(b,t); c.position.x=-4.8+i*3.2; g.add(c); }
+    scene.add(g); return { rad:26, ty:3.75, update(dt){ g.rotation.y+=dt*0.15; asm.rotation.y+=dt*0.15; } };
   }
   return { rad:20, ty:2, update(){} };
 }
