@@ -2,6 +2,18 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.8.0] — 2026-07-10
+
+### Added
+- **Guided exercises** in the Study tab — 11 hands-on, step-by-step walkthroughs with
+  explained code (author a stage, references, sublayers, variants, payloads, inherits,
+  specializes, model kinds/assemblies, scenegraph instancing, point instancing, OBJ→USD
+  data exchange), each with a "check yourself" question.
+- **5 new animated demos** — references, variant switching, payload load/unload,
+  scenegraph instancing, and point-instancer scatter.
+- Content is original, grounded in and attributed to the NVIDIA Learn OpenUSD course
+  exercises (Apache-2.0).
+
 ## [1.7.1] — 2026-07-02
 
 ### Fixed

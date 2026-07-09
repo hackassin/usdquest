@@ -369,6 +369,14 @@
   .dd-ex summary{cursor:pointer;color:var(--blue);font-weight:700;font-size:13px}
   .dd-a{margin-top:8px;font-size:13.5px;line-height:1.55;color:#d4e6da}
   .dd-a b{color:var(--green-l)}
+  .dd-tag{display:inline-block;font-size:11px;font-weight:800;color:var(--green-l);background:var(--panel-2);
+    border:1px solid var(--line);border-radius:999px;padding:3px 10px;clear:both}
+  .ex-step{border-left:3px solid var(--line);padding:2px 0 2px 14px;margin:0 0 14px}
+  .ex-num{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--green-l);font-weight:800;margin-bottom:4px}
+  .ex-step .dd-p{margin:0 0 8px}
+  .ex-take{background:rgba(118,185,0,.10);border:1px solid #33501a;border-radius:12px;padding:13px 15px;
+    font-size:13.5px;line-height:1.55;color:#d4e6da;margin:6px 0 4px}
+  .ex-take b{color:var(--green-l)}
 
   /* ---------- Section banners ---------- */
   .path-section{margin:30px 0 6px;padding:16px 18px;border-radius:var(--radius);text-align:center;
@@ -7554,6 +7562,106 @@ function renderDeepDive(id){
   el("deepdive").innerHTML=html;
 }
 
+const EXERCISES = {
+  foundations:{ title:"Author your first stage", icon:"🎬", domain:"Data Modeling",
+    intro:"A USD file is a <b>layer</b>; you open it as a <b>stage</b>, add prims, and save. Set units and up-axis up front so downstream tools interpret your scene correctly.",
+    steps:[
+      {t:"Create a stage and declare units + up-axis.", code:"from pxr import Usd, UsdGeom\nstage = Usd.Stage.CreateNew(\"scene.usda\")\nUsdGeom.SetStageMetersPerUnit(stage, UsdGeom.LinearUnits.centimeters)\nUsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)"},
+      {t:"Build an Xform hierarchy, set the <code>defaultPrim</code> (the asset's entry point), and add geometry.", code:"world = UsdGeom.Xform.Define(stage, \"/World\")\nstage.SetDefaultPrim(world.GetPrim())\nUsdGeom.Sphere.Define(stage, \"/World/Ball\")"},
+      {t:"Write it to disk.", code:"stage.Save()"}],
+    takeaway:"The stage is your live, composed view; edits go to the <b>edit target</b> (the root layer by default) until you <code>Save()</code> or <code>Export()</code>. A <code>defaultPrim</code> lets others reference the asset without knowing its internal names.",
+    example:{q:"Which metadata lets another stage reference this asset without naming an internal prim?",a:"defaultPrim",e:"When a layer is referenced without a target path, USD uses its <code>defaultPrim</code>."}},
+  references:{ title:"Reference assets to build a scene", icon:"🔗", domain:"Composition", gif:"assets/references.gif",
+    intro:"A <b>reference</b> pulls another asset's prims onto a prim, so one source asset can be reused many times — the backbone of content aggregation.",
+    steps:[
+      {t:"Define a prim to host each copy, then add the reference (relative, POSIX path for portability).", code:"b1 = UsdGeom.Xform.Define(stage, \"/World/skyscraper_01\")\nb1.GetPrim().GetReferences().AddReference(\"./assets/skyscraperA.usd\")"},
+      {t:"Reuse the same asset under another prim and place it with a transform.", code:"b2 = UsdGeom.Xform.Define(stage, \"/World/skyscraper_02\")\nb2.GetPrim().GetReferences().AddReference(\"./assets/skyscraperA.usd\")\nUsdGeom.XformCommonAPI(b2).SetTranslate(Gf.Vec3d(180, 0, 0))"}],
+    takeaway:"Referencing the same file under several prims reuses <b>one</b> source asset; give each host prim a unique transform to lay out a city. Edit the source once and every reference updates.",
+    example:{q:"You reference the same building onto 20 prims. How many source files do you maintain?",a:"one",e:"All 20 prims share a single referenced asset; fixing the source fixes them all."}},
+  sublayers:{ title:"Compose with sublayers", icon:"🧅", domain:"Composition", gif:"assets/valueres.gif",
+    intro:"<b>Sublayers</b> stack layers into one <b>layer stack</b> that share the same namespace — ideal for department/override stacks and multi-user work. Earlier in the list = stronger.",
+    steps:[
+      {t:"Append sublayers to the root layer. The first entry is the strongest.", code:"root = stage.GetRootLayer()\nroot.subLayerPaths.append(\"./geometry.usd\")     # weaker\nroot.subLayerPaths.insert(0, \"./overrides.usd\")  # stronger (front)"},
+      {t:"Point the edit target at a specific sublayer so your edits land there.", code:"layer = Sdf.Layer.FindOrOpen(\"./overrides.usd\")\nstage.SetEditTarget(layer)"}],
+    takeaway:"Sublayers keep one namespace (unlike references, which encapsulate + re-root). When two sublayers set the same property, the one listed <b>first</b> wins.",
+    example:{q:"Two sublayers set the same attribute. Which value resolves?",a:"the one listed first",e:"Earlier sublayers are stronger in the layer stack."}},
+  variants:{ title:"Author & switch a variant set", icon:"🎚️", domain:"Composition", gif:"assets/variants.gif",
+    intro:"A <b>variant set</b> packages mutually-exclusive configurations behind one selectable switch (e.g. lights on/off, LOD high/low).",
+    steps:[
+      {t:"Add the variant set and its named variants on the prim.", code:"vset = prim.GetVariantSets().AddVariantSet(\"lights\")\nvset.AddVariant(\"on\")\nvset.AddVariant(\"off\")"},
+      {t:"Author opinions INSIDE a variant edit context — everything you author there belongs to that variant.", code:"vset.SetVariantSelection(\"on\")\nwith vset.GetVariantEditContext():\n    light_api.GetIntensityAttr().Set(100.0)"},
+      {t:"Set the selection the asset ships with.", code:"vset.SetVariantSelection(\"off\")"}],
+    takeaway:"Only opinions authored within <code>GetVariantEditContext()</code> are captured under the variant; changing the selection recomposes that subtree.",
+    example:{q:"Where must opinions be authored so they belong to a variant?",a:"inside GetVariantEditContext()",e:"The edit context scopes authored opinions into the active variant."}},
+  payloads:{ title:"Defer heavy data with payloads", icon:"📦", domain:"Composition", gif:"assets/payload.gif",
+    intro:"A <b>payload</b> is a special reference you can load/unload on demand — open a massive scene fast and stream in only what you need.",
+    steps:[
+      {t:"Add a payload instead of a reference for heavy assets.", code:"prim = UsdGeom.Xform.Define(stage, \"/World/bldg_01\")\nprim.GetPrim().GetPayloads().AddPayload(\"./sm_bldgF.usd\")"},
+      {t:"Control what is in memory when you open the stage.", code:"stage = Usd.Stage.Open(\"city.usda\", Usd.Stage.InitialLoadSet.LoadNone)\nstage.Load(\"/World/bldg_01\")     # stream one in\nstage.Unload(\"/World/bldg_02\")   # drop another"}],
+    takeaway:"Put a payload at the asset root so consumers can unload it. Payloads are the primary scalability tool for city- and factory-scale scenes.",
+    example:{q:"Which arc lets you open a scene without loading its heavy geometry?",a:"payload",e:"Payloads are load-on-demand; references are always composed at open."}},
+  inherits:{ title:"Broadcast edits with a class + inherits", icon:"🧬", domain:"Composition",
+    intro:"A <b>class</b> prim (an <code>over</code>-only template) plus the <b>inherits</b> arc lets a single edit fan out to every prim that inherits it.",
+    steps:[
+      {t:"Create a class and make a prim inherit it.", code:"cls = stage.CreateClassPrim(\"/_street_lamp\")\nprim.GetInherits().AddInherit(cls.GetPath())"},
+      {t:"Edit the class — every inheriting prim picks up the change.", code:"over = stage.OverridePrim(\"/_street_lamp/Light\")\nUsdLux.LightAPI(over).CreateColorAttr((0.5, 0.4, 0.1))"}],
+    takeaway:"Inherits is strong (the <b>I</b> in LIVERPS) and broadcasts — perfect for \"restyle every lamp of this type at once\".",
+    example:{q:"You change a value on the class. How many inheriting prims update?",a:"all of them",e:"Inherited opinions are shared by every prim that inherits the class."}},
+  specializes:{ title:"Fallback values with specializes", icon:"🪜", domain:"Composition",
+    intro:"<b>Specializes</b> is the <b>weakest</b> arc (the S in LIVERPS) — ideal for base/fallback data that any local edit can override.",
+    steps:[
+      {t:"Author a base value on a class and specialize prims to it.", code:"cls = stage.CreateClassPrim(\"/_street_data\")\ncls.CreateAttribute(\"osm:maxspeed\", Sdf.ValueTypeNames.Int, custom=True).Set(30)\nroad.GetSpecializes().AddSpecialize(cls.GetPath())"},
+      {t:"A local opinion overrides the specialized fallback.", code:"road.GetAttribute(\"osm:maxspeed\").Set(20)   # beats the specialized 30"}],
+    takeaway:"Unlike inherits (strong), specialized opinions sit at the <b>bottom</b> of LIVERPS, so they behave as defaults that everything else refines.",
+    example:{q:"Base via specializes = 30, local opinion = 20. Resolved value?",a:"20",e:"Local beats Specializes in LIVERPS, so 20 wins."}},
+  kind:{ title:"Model kinds & assemblies", icon:"🏷️", domain:"Content Aggregation",
+    intro:"<code>kind</code> classifies a prim's role in the <b>model hierarchy</b>; assemblies aggregate components into larger deliverables.",
+    steps:[
+      {t:"Tag a leaf asset as a component.", code:"from pxr import Kind\nUsd.ModelAPI(prim).SetKind(Kind.Tokens.component)"},
+      {t:"Build an assembly that references components.", code:"Usd.ModelAPI(world).SetKind(Kind.Tokens.assembly)\nbldg = stage.DefinePrim(\"/World/Bldg_01\")\nbldg.GetReferences().AddReference(\"./lrg_bldgF.usd\")"}],
+    takeaway:"Leaf, publishable assets are <code>component</code>; aggregations are <code>assembly</code>/<code>group</code>. The model hierarchy must stay contiguous from the root.",
+    example:{q:"Which kind marks a leaf-level, publishable asset?",a:"component",e:"Components are the leaves; assemblies/groups aggregate them."}},
+  sginstancing:{ title:"Scenegraph instancing", icon:"🧩", domain:"Content Aggregation", gif:"assets/instancing.gif",
+    intro:"Mark identical, referenced components <b>instanceable</b> and USD shares a single <b>prototype</b> — a big memory and traversal win in large scenes.",
+    steps:[
+      {t:"Flag component prims as instanceable.", code:"for prim in stage.Traverse():\n    if Usd.ModelAPI(prim).GetKind() == Kind.Tokens.component:\n        prim.SetInstanceable(True)"},
+      {t:"Understand the trade-off: an instance's descendants become read-only <b>instance proxies</b>.", code:"# To edit internals: override the instance root, or\n# prim.SetInstanceable(False)  # de-instance this one"}],
+    takeaway:"Instances that compose <b>identically</b> share one prototype. You can still override the instance root prim — just not its internals through the instance.",
+    example:{q:"What must be true for two prims to share a prototype?",a:"identical composition",e:"Only identically-composing instanceable prims can share a prototype."}},
+  ptinstancing:{ title:"Point-instancer scatter", icon:"✨", domain:"Content Aggregation", gif:"assets/pointscatter.gif",
+    intro:"A <b>UsdGeomPointInstancer</b> scatters thousands of prototype copies from plain arrays — far lighter than authoring thousands of prims.",
+    steps:[
+      {t:"Define the instancer and reference assets as prototypes.", code:"pi = UsdGeom.PointInstancer.Define(stage, \"/World/Scatter\")\nbox = stage.DefinePrim(\"/World/Scatter/Prototypes/Box\")\nbox.GetReferences().AddReference(\"./CubeBox.usd\")\npi.CreatePrototypesRel().SetTargets([box.GetPath()])"},
+      {t:"Fill the required per-instance arrays.", code:"pi.CreatePositionsAttr(positions)      # point3f[]\npi.CreateProtoIndicesAttr(proto_ids)   # int[]: which prototype per point"}],
+    takeaway:"<b>prototypes</b>, <b>protoIndices</b>, and <b>positions</b> are the required trio; add <code>orientations</code>/<code>scales</code> for variety.",
+    example:{q:"Which array maps each scattered instance to its prototype?",a:"protoIndices",e:"protoIndices holds an integer per point selecting its prototype."}},
+  dataexchange:{ title:"Bring OBJ into USD", icon:"🔁", domain:"Data Exchange",
+    intro:"USD reads other formats through <b>file-format plugins</b>, so you can convert or reference foreign data like OBJ — just mind units and orientation.",
+    steps:[
+      {t:"Convert on the command line via the OBJ file-format plugin.", code:"usdcat shapes.obj -o shapes.usd"},
+      {t:"Fix stage metadata on import, then validate and package.", code:"# reconcile metersPerUnit / upAxis with the source\nusdchecker shapes.usd     # validate integrity\nusdzip asset.usdz shapes.usd textures/  # package for delivery"}],
+    takeaway:"On import, reconcile <code>metersPerUnit</code> and <code>upAxis</code>; <code>usdchecker</code> validates an exported asset and <code>usdzip</code> bundles it for hand-off.",
+    example:{q:"Which tool validates the integrity of an exported USD asset?",a:"usdchecker",e:"usdchecker reports composition and data problems in an asset."}},
+};
+function renderExercise(id){
+  refreshTop();
+  hideAllScreens(); el("deepdive").classList.remove("hidden"); showNav("study");
+  const x=EXERCISES[id]; if(!x){ renderStudy(); return; }
+  let html=`<div class="report-head" style="text-align:left">
+      <button class="report-back" onclick="renderStudy()">← Study</button>
+      <h2 style="clear:both;padding-top:6px">${x.icon} ${esc(x.title)}</h2>
+      <span class="dd-tag">${esc(x.domain)}</span></div>`;
+  if(x.gif) html+=`<img class="dd-gif" src="${x.gif}" loading="lazy" alt="${esc(x.title)} demo"/>`;
+  html+=`<p class="dd-p">${x.intro}</p>`;
+  x.steps.forEach((s,i)=>{ html+=`<div class="ex-step"><div class="ex-num">Step ${i+1}</div><p class="dd-p">${s.t}</p>`+(s.code?`<pre class="code">${esc(s.code)}</pre>`:``)+`</div>`; });
+  if(x.takeaway) html+=`<div class="ex-take"><b>💡 Takeaway.</b> ${x.takeaway}</div>`;
+  if(x.example) html+=`<div class="section-label">Check yourself</div>
+    <div class="dd-ex"><div class="dd-q"><b>Q.</b> ${x.example.q}</div>
+      <details><summary>Show answer</summary><div class="dd-a"><b>✅ ${esc(x.example.a)}</b><br>${x.example.e}</div></details></div>`;
+  html+=`<p class="report-note">Adapted from the <b>NVIDIA Learn OpenUSD</b> course exercises (Apache-2.0). Snippets are illustrative, written for study.</p>`;
+  el("deepdive").innerHTML=html;
+}
+
 function renderStudy(){
   refreshTop();
   hideAllScreens(); el("study").classList.remove("hidden"); showNav("study");
@@ -7562,6 +7670,12 @@ function renderStudy(){
     Object.keys(DEEPDIVES).map(k=>`<button class="study-row" onclick="renderDeepDive('${k}')">
       <span class="sr-ico">${DEEPDIVES[k].icon}</span><span class="sr-name">${esc(DEEPDIVES[k].title)}</span>
       <span class="sr-tag">${DEEPDIVES[k].gif?'▶ demo':'guide'}</span></button>`).join("")+
+    `</div>`;
+  html+=`<div class="section-label">🧪 Guided exercises · hands-on code</div>
+    <div class="dd-list">`+
+    Object.keys(EXERCISES).map(k=>`<button class="study-row" onclick="renderExercise('${k}')">
+      <span class="sr-ico">${EXERCISES[k].icon}</span><span class="sr-name">${esc(EXERCISES[k].title)}</span>
+      <span class="sr-tag">${EXERCISES[k].gif?'▶ demo':'code'}</span></button>`).join("")+
     `</div>`;
   html+=`<div class="section-label">📖 Lesson notes</div>
     <div class="empty-card" style="text-align:left">Quick tips for every lesson. Read before you start, or revisit anytime.</div>`;
@@ -8486,7 +8600,7 @@ window.hardReset=hardReset; window.exportProgress=exportProgress;
 window.addFriend=addFriend; window.acceptReq=acceptReq; window.declineReq=declineReq; window.removeFriend=removeFriend;
 window.saveUsername=saveUsername; window.logoutConfirm=logoutConfirm; window.toggleSound=toggleSound;
 window.renderStudy=renderStudy; window.showNotes=showNotes; window.pairTap=pairTap; window.startExam=startExam; window.renderReport=renderReport;
-window.multiToggle=multiToggle; window.renderDeepDive=renderDeepDive;
+window.multiToggle=multiToggle; window.renderDeepDive=renderDeepDive; window.renderExercise=renderExercise;
 
 /* boot — resume session if logged in, else show login */
 async function boot(){
