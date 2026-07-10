@@ -2,6 +2,17 @@
 
 All notable changes to USDQuest. This project follows a simple incremental versioning scheme.
 
+## [1.11.0] — 2026-07-10
+
+### Added
+- **3 more practice tests (Practice Tests 6–8)** and **54 new tricky questions** in the practice bank
+  (now 160), weighted toward LIVRPS / value resolution / opinions, UsdGeomMesh, and OpenUSD API usage.
+- Composed-value tracing questions (predict the resolved value across variants/references/inherits/
+  specializes), "why doesn't this opinion take effect?" debugging, UsdGeomMesh topology/subdivision/
+  primvar-interpolation questions, and API-behavior questions (e.g. GetPrimAtPath returns an invalid
+  prim, HasValue vs HasAuthoredValue, GetPrimStack ordering) grounded in the OpenUSD API docs.
+- All original; spot-checked for accuracy.
+
 ## [1.10.0] — 2026-07-10
 
 ### Added

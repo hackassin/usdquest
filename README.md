@@ -14,7 +14,7 @@ Open it on desktop or phone, create an account, and start learning. On mobile yo
 ## ✨ Features
 
 - **14 units · 43 lessons · 430 questions** in two sections — Section 1 (foundations & core concepts) and Section 2 (developer & production: debugging, data exchange, pipelines, customizing USD), aligned to the NVIDIA NCP-OUSD exam domains
-- **Timed exams** — checkpoint exams, a **1-hour, 65-question Final Exam** (domain-weighted) with a scored certificate, and a **Practice Exams section with 5 full simulations** plus a 106-question practice bank
+- **Timed exams** — checkpoint exams, a **1-hour, 65-question Final Exam** (domain-weighted) with a scored certificate, and a **Practice Exams section with 8 full simulations** plus a 160-question practice bank
 - **Question types** — multiple choice, multi-select (choose 2/3), true/false, type-answer, match-the-pairs, and code-snippet questions
 - **Exam feedback** — per-domain performance breakdown with elaborative focus-area guidance after every exam
 - **Chapter deep-dives** — animated GIF demos (timeSamples, LIVERPS, value resolution) + worked examples in the Study tab
